@@ -9,9 +9,7 @@
 (def FACTOR 5)
 
 
-(defmulti rwalk
-  (fn [x]
-    (first x)))
+(defmulti rwalk first)
 
 (defmethod rwalk :REGEX
   [[_ & clauses]]
