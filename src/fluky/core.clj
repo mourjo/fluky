@@ -5,8 +5,7 @@
 
 (insta/defparser rgx
   "
-REGEX = EXPR*
-EXPR = SIMPLE | COMPLEX
+REGEX = (SIMPLE | DOT | CHAR | POSSET | NEGSET | STARSELECTOR | PLUSSELECTOR)*
 
 CHAR =
 \"a\"|\"A\"|
@@ -46,25 +45,17 @@ CHAR =
 \"8\"|
 \"9\"
 
-SIMPLE = CHAR | (\"\\\\\" SPCL)
+SIMPLE = CHAR | (\"\\\\\" \"+\") | (\"\\\\\" \"*\")
 
-STAR = \"*\"
-PLUS = \"+\"
 DOT = \".\"
-SPCL = PLUS | STAR
-
-COLLECTION = COLLITEM*
-
-COLLITEM = RANGE | CHAR
 
 RANGE = CHAR \"-\" CHAR
-POSSET = \"[\" COLLECTION \"]\"
-NEGSET = \"[\" \"^\" COLLECTION \"]\"
+POSSET = \"[\" (RANGE | CHAR)* \"]\"
+NEGSET = \"[\" \"^\" (RANGE | CHAR)* \"]\"
 
-STARSELECTOR = COMPLEX STAR
-PLUSSELECTOR = COMPLEX PLUS
+STARSELECTOR = (DOT | CHAR | POSSET | NEGSET) \"*\"
+PLUSSELECTOR = (DOT | CHAR | POSSET | NEGSET) \"+\"
 
-COMPLEX = DOT | CHAR | POSSET | NEGSET | STARSELECTOR | PLUSSELECTOR
 "
   )
 
