@@ -1,5 +1,6 @@
 (ns fluky.grammar
-  (:require [instaparse.core :as insta]))
+  (:require [instaparse.core :as insta]
+            [clojure.string :as cstr]))
 
 (insta/defparser regex-grammar
   "
@@ -21,7 +22,7 @@ CHAR = 'a' | 'A' | 'b' | 'B' | 'c' | 'C' | 'd' | 'D' | 'e' | 'E' | 'f' | 'F' |
        'm' | 'M' | 'n' | 'N' | 'o' | 'O' | 'p' | 'P' | 'q' | 'Q' | 'r' | 'R' |
        's' | 'S' | 't' | 'T' | 'u' | 'U' | 'v' | 'V' | 'w' | 'W' | 'x' | 'X' |
        'y' | 'Y' | 'z' | 'Z' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' |
-       '8' | '9' | '.' | '-' | '}' | ']' | ' ';
+       '8' | '9' | '.' | '}' | ']' | ' ' | '-';
 
 META_CHAR =  '*' | '{' | '+';
 
@@ -43,8 +44,8 @@ DOT = '.';
 
 RANGE = CHAR '-' CHAR ;
 
-POS_SET = '[' (REGEX_CLAUSE | META_CHAR)+ ']' ;
-NEG_SET = '[' '^' (REGEX_CLAUSE | META_CHAR)+ ']' ;
+POS_SET = '[' (REGEX_CLAUSE | META_CHAR | RANGE)+ ']' ;
+NEG_SET = '[' '^' (REGEX_CLAUSE | META_CHAR | RANGE)+ ']' ;
 
 STAR_QUANTIFIER = (ESCAPED | DOT | CHAR | POS_SET | NEG_SET) '*' ;
 PLUS_QUANTIFIER = (ESCAPED | DOT | CHAR | POS_SET | NEG_SET) '+' ;
@@ -58,10 +59,21 @@ EXACT_QUANTIFIER = (ESCAPED | DOT | CHAR | POS_SET | NEG_SET) '{' NUMBER '}' ;
   )
 
 
+(defn ->parse-error
+  [result]
+  (try
+    (let [msg (if (:index result)
+                (str "Invalid regex, near " (:index result))
+                "Invalid regex")
+          reason (map :expecting (:reason result []))]
+      (ex-info msg
+               {:expecting reason}))
+    (catch Exception _
+      (ex-info "Invalid regex" result))))
 
-(defn parse-regex
+(defn regex->tree
   [s]
   (let [res (regex-grammar s)]
     (if (insta/failure? res)
-      ::FAILURE
+      (throw (->parse-error res))
       res)))
