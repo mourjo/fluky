@@ -33,7 +33,7 @@
                        b (max x y)]
                    (format "{%d,%d}" a b)))
                (gen/let [x (gen/fmap abs gen/small-integer)]
-                 (format "{%d}" x))]))
+                 (format "{%d}" (max 1 x)))]))
 
 
 (def gsquare-optional
@@ -43,23 +43,37 @@
   ;; [abcde]+
   ;; [abcde]{1,2}
   (gen/let [charseq (gen/vector gchar 1 5)
-            q quantifier]
-    (str "[" (cstr/join "" charseq) "]" q)))
+            q quantifier
+            neg? gen/boolean]
+    (let [s (cstr/join "" charseq)]
+      (if neg?
+        (format "[^%s]%s" s q)
+        (format "[%s]%s" s q)))))
 
 
 (def gsquare-range
   ;; Generate a regex of the form:
   ;; [a-e]?
-  ;; [a-b]*
+  ;; [^a-b]*
   ;; [g-z]+
   ;; [0-9]{1,2}
   (gen/let [a gen/char-alpha-numeric
             b gen/char-alpha-numeric
-            q quantifier]
+            q quantifier
+            neg? gen/boolean]
     (let [x (char (min (int a) (int b)))
           y (char (max (int a) (int b)))]
-      (str "[" x "-" y "]" q))))
+      (if neg?
+        (format "[^%s-%s]%s" x y q)
+        (format "[%s-%s]%s" x y q)))))
+
+
+(def gregex-clause
+  (gen/one-of [gsquare-range
+               gsquare-optional
+               gchar]))
 
 
 (def gregex
-  (gen/one-of [gsquare-range gsquare-optional gchar]))
+  (gen/let [clauses (gen/vector gregex-clause)]
+    (cstr/join "" clauses)))

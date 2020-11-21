@@ -84,6 +84,7 @@
 ;; character classes like \a
 ;; Possessive quantifier like ++ and *+ *?
 ;; Java allows this but this is not a valid regex {1,2} {112}
+;; Ambiguous application (nesting of []) "[^[012]]{1}"
 
 (def invalid-regexes
   ["*"
@@ -101,41 +102,41 @@
    "[a-z]*++"
    "\\c"])
 
-(defn actually-valid?
+
+(defn valid-java-pattern?
   [s]
   (try (Pattern/compile s)
        true
        (catch Exception _
          false)))
 
-(defn valid?
+
+(defn valid-by-grammar?
   [s]
   (let [res (sut/regex-grammar s)]
     (not (insta/failure? res))))
 
 
+(defn agreeable-regex?
+  [regex-str exp]
+  (= (valid-java-pattern? regex-str)
+     (valid-by-grammar? regex-str)
+     exp))
+
+
 (t/deftest valid-samples
   (t/testing "Valid regex syntax"
-    (doseq [x valid-regexes]
-      (t/is (= (actually-valid? x)
-               (valid? x)
-               true)
-            x)))
+    (doseq [regex-str valid-regexes]
+      (t/is (agreeable-regex? regex-str true)
+            (str "Expected to be valid but is not: " regex-str))))
   (t/testing "Invalid regex syntax"
-    (doseq [x invalid-regexes]
-      (t/is (= (actually-valid? x)
-               (valid? x)
-               false)
-            x))))
-
-
-
+    (doseq [regex-str invalid-regexes]
+      (t/is (agreeable-regex? regex-str false)
+            (str "Expected to be invalid but is: " regex-str)))))
 
 
 (ct/defspec generative-syntax-validation
   10000
   (prop/for-all [regex-str fgen/gregex]
-                (t/is (= (actually-valid? regex-str)
-                         (valid? regex-str)
-                         true)
-                      regex-str)))
+                (t/is (agreeable-regex? regex-str true)
+                      (str "Expected to be valid but is not: " regex-str))))

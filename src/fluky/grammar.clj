@@ -3,7 +3,8 @@
 
 (insta/defparser regex-grammar
   "
-REGEX = (
+REGEX = REGEX_CLAUSE* ;
+REGEX_CLAUSE =
            ESCAPED |
            DOT |
            CHAR |
@@ -13,8 +14,7 @@ REGEX = (
            PLUS_QUANTIFIER |
            QMARK_QUANTIFIER |
            MIN_MAX_QUANTIFIER |
-           EXACT_QUANTIFIER
-        )+ ;
+           EXACT_QUANTIFIER ;
 
 CHAR = 'a' | 'A' | 'b' | 'B' | 'c' | 'C' | 'd' | 'D' | 'e' | 'E' | 'f' | 'F' |
        'g' | 'G' | 'h' | 'H' | 'i' | 'I' | 'j' | 'J' | 'k' | 'K' | 'l' | 'L' |
@@ -43,8 +43,8 @@ DOT = '.';
 
 RANGE = CHAR '-' CHAR ;
 
-POS_SET = '[' (REGEX | META_CHAR)+ ']' ;
-NEG_SET = '[' '^' (REGEX | META_CHAR)+ ']' ;
+POS_SET = '[' (REGEX_CLAUSE | META_CHAR)+ ']' ;
+NEG_SET = '[' '^' (REGEX_CLAUSE | META_CHAR)+ ']' ;
 
 STAR_QUANTIFIER = (ESCAPED | DOT | CHAR | POS_SET | NEG_SET) '*' ;
 PLUS_QUANTIFIER = (ESCAPED | DOT | CHAR | POS_SET | NEG_SET) '+' ;
