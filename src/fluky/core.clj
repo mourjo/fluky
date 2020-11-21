@@ -36,6 +36,11 @@
     (rwalk candidate)))
 
 
+(defmethod rwalk :META_CHAR
+  [[_ clause]]
+  clause)
+
+
 (defmethod rwalk :CHAR
   [[_ clause]]
   clause)
