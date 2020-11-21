@@ -6,7 +6,7 @@
 
 
 
-
+(def FACTOR 5)
 
 
 (defmulti rwalk
@@ -14,8 +14,8 @@
     (first x)))
 
 (defmethod rwalk :REGEX
-  [[_ clause]]
-  (rwalk clause))
+  [[_ & clauses]]
+  (cstr/join "" (map rwalk clauses)))
 
 
 (defmethod rwalk :REGEX_CLAUSE
@@ -26,12 +26,14 @@
 (defmethod rwalk :PLUS_QUANTIFIER
   [[_ clause _]]
   (cstr/join ""
-             (repeatedly (inc (rand-int 5))
+             (repeatedly (inc (rand-int FACTOR))
                          (fn [] (rwalk clause)))))
 
 (defmethod rwalk :POS_SET
-  [clauses]
-  (rwalk (nth clauses 2)))
+  [[_ _ & clauses]]
+  (let [candidates (butlast clauses)
+        candidate (rand-nth candidates)]
+    (rwalk candidate)))
 
 
 (defmethod rwalk :CHAR
@@ -50,5 +52,5 @@
 (defn random-regex
   [s]
   (let [tree (fg/regex->tree s)]
-    (clojure.pprint/pprint tree)
+  ;;   (clojure.pprint/pprint tree)
     (rwalk tree)))
