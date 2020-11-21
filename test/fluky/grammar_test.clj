@@ -85,6 +85,7 @@
 ;; Possessive quantifier like ++ and *+ *?
 ;; Java allows this but this is not a valid regex {1,2} {112}
 ;; Ambiguous application (nesting of []) "[^[012]]{1}"
+;; ^ as the start of a line ^z-z
 
 (def invalid-regexes
   ["*"
