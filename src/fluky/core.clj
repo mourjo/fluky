@@ -5,56 +5,27 @@
 
 (insta/defparser rgx
   "
-REGEX = (SIMPLE | DOT | CHAR | POSSET | NEGSET | STARSELECTOR | PLUSSELECTOR)*
+REGEX = (ESCAPED | DOT | CHAR | POS_SET | NEG_SET | STAR_QUANTIFIER | PLUS_QUANTIFIER | QMARK_QUANTIFIER)*
 
-CHAR =
-\"a\"|\"A\"|
-\"b\"|\"B\"|
-\"c\"|\"C\"|
-\"d\"|\"D\"|
-\"e\"|\"E\"|
-\"f\"|\"F\"|
-\"g\"|\"G\"|
-\"h\"|\"H\"|
-\"i\"|\"I\"|
-\"j\"|\"J\"|
-\"k\"|\"K\"|
-\"l\"|\"L\"|
-\"m\"|\"M\"|
-\"n\"|\"N\"|
-\"o\"|\"O\"|
-\"p\"|\"P\"|
-\"q\"|\"Q\"|
-\"r\"|\"R\"|
-\"s\"|\"S\"|
-\"t\"|\"T\"|
-\"u\"|\"U\"|
-\"v\"|\"V\"|
-\"w\"|\"W\"|
-\"x\"|\"X\"|
-\"y\"|\"Y\"|
-\"z\"|\"Z\"|
-\"0\"|
-\"1\"|
-\"2\"|
-\"3\"|
-\"4\"|
-\"5\"|
-\"6\"|
-\"7\"|
-\"8\"|
-\"9\"
+CHAR = \"a\" | \"A\"| \"b\" | \"B\" | \"c\" | \"C\" | \"d\" | \"D\" | \"e\" | \"E\" | \"f\" | \"F\" |
+       \"g\" | \"G\"| \"h\" | \"H\" | \"i\" | \"I\" | \"j\" | \"J\" | \"k\" | \"K\" | \"l\" | \"L\" |
+       \"m\" | \"M\"| \"n\" | \"N\" | \"o\" | \"O\" | \"p\" | \"P\" | \"q\" | \"Q\" | \"r\" | \"R\" |
+       \"s\" | \"S\"| \"t\" | \"T\" | \"u\" | \"U\" | \"v\" | \"V\" | \"w\" | \"W\" | \"x\" | \"X\" |
+       \"y\" | \"Y\"| \"z\" | \"Z\" | \"0\" | \"1\" | \"2\" | \"3\" | \"4\" | \"5\" | \"6\" | \"7\" |
+       \"8\" | \"9\"
 
-SIMPLE = CHAR | (\"\\\\\" \"+\") | (\"\\\\\" \"*\")
+BACK_SLASH = \"\\\\\"
+ESCAPED = (BACK_SLASH \"+\") | (BACK_SLASH \"*\") | (BACK_SLASH \"?\") | (BACK_SLASH \".\")
 
 DOT = \".\"
 
 RANGE = CHAR \"-\" CHAR
-POSSET = \"[\" (RANGE | CHAR)* \"]\"
-NEGSET = \"[\" \"^\" (RANGE | CHAR)* \"]\"
+POS_SET = \"[\" (RANGE | ESCAPED | CHAR | DOT)* \"]\"
+NEG_SET = \"[\" \"^\" (RANGE | ESCAPED | CHAR | DOT)* \"]\"
 
-STARSELECTOR = (DOT | CHAR | POSSET | NEGSET) \"*\"
-PLUSSELECTOR = (DOT | CHAR | POSSET | NEGSET) \"+\"
+STAR_QUANTIFIER = (DOT | CHAR | POS_SET | NEG_SET) \"*\"
+PLUS_QUANTIFIER = (DOT | CHAR | POS_SET | NEG_SET) \"+\"
+QMARK_QUANTIFIER = (DOT | CHAR | POS_SET | NEG_SET) \"?\"
 
 "
   )
