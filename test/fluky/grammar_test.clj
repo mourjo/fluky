@@ -17,16 +17,12 @@
    "[---]*"
    "[--z]*"
    "[+-a]*"
-   "[[]"
    "[{]"
-   ;; "\\{"
    "\\+"
    "\\+"
-   "*"
    "[*]?"
    "[-+]*"
    "[+-a]*"
-   ;; "[+-a]*+"
    "[-]?"
    "[-]?"
    "[-]?"
@@ -37,45 +33,72 @@
    "\\*[a-z10.]?"
    "\\+"
    "\\*"
-   "*"
-   "\\*"
-   "\\*"
-   "\\*"
    "[^a-z01]"
    "[^a-z01]"
    "[^a-z01]"
    "[a-z0-9]*"
    "[a-z0-9]*"
    "[a-z0-9]*"
+   "[a-z0-9]"
+   "[a-z]"
+   "[a-]"
+   "[-a]"
+   ;; "a-"
+   ;; "[+-a]*+"
+   ;; "\\{"
    ;; "-"
    ;; "a-z"
    ;; "\\**?"
    ;; "{1,2}"
    ;;"{112}"
+   ;; "[ ---------z-]"
+   ;; "123]"
+   ;; "\\[123"
+
    ])
 
 
 (def invalid-regexes
-  ["[a-+]*+"])
+  ["[a-+]*+"
+   "*"
+   "[[]"
+   "*"
+   "+"
+   "**"
+   "[123"
+   ;; "[ ----z]"
+   ;; "[ ---------z--]"
+   "???"])
 
 (defn actually-valid?
   [s]
   (try (Pattern/compile s)
        true
-       (catch Exception _)))
+       (catch Exception _
+         false)))
 
 (defn valid?
   [s]
   (let [res (sut/regex-grammar s)]
-    (when-not (insta/failure? res)
-      true)))
+    (not (insta/failure? res))))
 
 
 (t/deftest valid-samples
-  (doseq [x valid-regexes]
-    (t/is (= (actually-valid? x)
-             (valid? x))
-          x)))
+  (t/testing "Valid regex syntax"
+    (doseq [x valid-regexes]
+      (t/is (= (actually-valid? x)
+               (valid? x)
+               true)
+            x)))
+  (t/testing "Invalid regex syntax"
+    (doseq [x invalid-regexes]
+      (t/is (= (actually-valid? x)
+               (valid? x)
+               false)
+            x))))
+
+
+
 
 
 ;; (ct/defspec abcd
