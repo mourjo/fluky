@@ -2,6 +2,7 @@
   (:require [fluky.grammar :as sut]
             [instaparse.core :as insta]
             [clojure.test.check :as tcheck]
+            [fluky.generators :as fgen]
             [clojure.test.check.clojure-test :as ct]
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
@@ -131,5 +132,10 @@
 
 
 
-;; (ct/defspec abcd
-;;   10)
+(ct/defspec generative-syntax-validation
+  10000
+  (prop/for-all [regex-str fgen/gregex]
+                (t/is (= (actually-valid? regex-str)
+                         (valid? regex-str)
+                         true)
+                      regex-str)))
