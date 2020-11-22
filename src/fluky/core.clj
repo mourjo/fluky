@@ -223,7 +223,6 @@
 
 
 (defn -main
-  "Generate a random string given a regex."
+  "Default entry point from the commandline"
   [regex]
-  (let [tree (fg/regex->tree regex)]
-    (println (pr-str (rwalk tree)))))
+  (println (pr-str (random-regex regex))))

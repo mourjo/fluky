@@ -13,6 +13,7 @@
                       (lazy-seq (alpha))))
       alpha-seq (alpha)]
   (defn ALPHABET
+    "Lazily generate an infinite random sequence of characters."
     []
     (drop (rand-int 75) alpha-seq)))
 
