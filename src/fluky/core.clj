@@ -220,3 +220,10 @@
   [regex]
   (let [tree (fg/regex->tree regex)]
     (rwalk tree)))
+
+
+(defn -main
+  "Generate a random string given a regex."
+  [regex]
+  (let [tree (fg/regex->tree regex)]
+    (println (pr-str (rwalk tree)))))
