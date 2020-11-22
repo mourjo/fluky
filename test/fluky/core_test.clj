@@ -2,7 +2,10 @@
   (:require [clojure.test :refer :all]
             [fluky.core :as sut]
             [clojure.set :as cset]
-            [clojure.string :as cstr])
+            [clojure.string :as cstr]
+            [clojure.test.check.properties :as prop]
+            [fluky.generators :as fgen]
+            [clojure.test.check.clojure-test :as ct])
   (:import java.util.regex.Pattern))
 
 (def regexes
@@ -201,3 +204,10 @@
       (catch Throwable t
         (println "Erorr in " (pr-str regex))
         (throw t)))))
+
+
+(ct/defspec generative-regex-generation
+  1000
+  (prop/for-all [regex-str fgen/gregex]
+                (let [result (sut/random-regex regex-str)]
+                  (is (valid? regex-str result)))))
