@@ -198,7 +198,7 @@
     (try
       (let [results (atom [])]
 
-        (dotimes [_ 1000]
+        (dotimes [_ 100]
           (let [result (sut/random-regex regex)]
             (is (regex-matches-generated-string? regex result))
             (swap! results conj result)))
@@ -212,7 +212,7 @@
         (throw t))))
 
 
-  (dotimes [_ 1000]
+  (dotimes [_ 100]
     (doseq [regex fgt/valid-regexes]
       (try
         (let [result (sut/random-regex regex)]
@@ -223,7 +223,7 @@
 
 
 (ct/defspec generative-regex-generation
-  1000
+  500
   (prop/for-all [regex-str fgen/gregex]
                 (let [result (sut/random-regex regex-str)]
                   (is (regex-matches-generated-string? regex-str result)))))

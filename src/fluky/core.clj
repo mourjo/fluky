@@ -15,8 +15,8 @@
   (reduce (fn [acc clause]
             (let [typed-f (rwalk clause)]
               (if (= :selector (:type typed-f))
-                (str acc (utils/ffilter (:fn typed-f) (shuffle utils/ALPHABET)))
-                (str acc (cstr/join "" ((:fn typed-f) (shuffle utils/ALPHABET)))))))
+                (str acc (utils/ffilter (:fn typed-f) (utils/ALPHABET)))
+                (str acc (cstr/join "" ((:fn typed-f) (utils/ALPHABET)))))))
           ""
           clauses))
 
@@ -72,7 +72,7 @@
   {:type :collector
    :fn (fn [alpha]
          (let [n (inc (rand-int utils/BRANCH-FACTOR))]
-           (take n (filter (:fn (rwalk clause)) (cycle alpha)))))})
+           (take n (filter (:fn (rwalk clause)) alpha))))})
 
 
 (defmethod rwalk :STAR_QUANTIFIER
@@ -85,7 +85,7 @@
   {:type :collector
    :fn (fn [alpha]
          (let [n (rand-int utils/BRANCH-FACTOR)]
-           (take n (filter (:fn (rwalk clause)) (cycle alpha)))))})
+           (take n (filter (:fn (rwalk clause)) alpha))))})
 
 
 (defmethod rwalk :QMARK_QUANTIFIER
@@ -123,7 +123,7 @@
    :fn (fn [alpha]
          (let [n (utils/rand-range (utils/parse-number lower)
                                    (utils/parse-number upper))]
-           (take n (filter (:fn (rwalk clause)) (cycle alpha)))))})
+           (take n (filter (:fn (rwalk clause)) alpha))))})
 
 
 (defmethod rwalk :EXACT_QUANTIFIER
@@ -136,7 +136,7 @@
   {:type :collector
    :fn (fn [alpha]
          (take (utils/parse-number n)
-               (filter (:fn (rwalk clause)) (cycle alpha))))})
+               (filter (:fn (rwalk clause)) alpha)))})
 
 
 (defmethod rwalk :POS_SET
@@ -174,8 +174,8 @@
         t (rwalk to)]
     {:type :selector
      :fn (fn [c]
-           (let [starting-char (utils/ffilter (:fn f) utils/ALPHABET)
-                 ending-char (utils/ffilter (:fn t) utils/ALPHABET)]
+           (let [starting-char (utils/ffilter (:fn f) (utils/ALPHABET))
+                 ending-char (utils/ffilter (:fn t) (utils/ALPHABET))]
              (if (<= (int starting-char) (int ending-char))
                (<= (int starting-char) (int c) (int ending-char))
                (throw (ex-info "Invalid range" {:clauses clauses})))))}))

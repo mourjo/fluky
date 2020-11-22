@@ -130,7 +130,7 @@
 
 
 (ct/defspec generative-syntax-validation
-  500
+  100
   (prop/for-all [regex-str fgen/gregex]
                 (is (agreeable-regex? regex-str true)
                     (str "Expected to be valid but is not: " regex-str))))
