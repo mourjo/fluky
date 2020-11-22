@@ -4,9 +4,9 @@
             [clojure.test.check.clojure-test :as ct]
             [clojure.test.check.properties :as prop]
             [fluky.core :as sut]
-            [fluky.generators :as fgen])
+            [fluky.generators :as fgen]
+            [fluky.grammar-test :as fgt])
   (:import java.util.regex.Pattern))
-
 
 (def sample-regexes
   [["[x-x]+"]
@@ -18,6 +18,8 @@
    ["a-x"]
 
    ["[a-x+{}]+"]
+
+   ["[-+]"]
 
    ["[{}]"
     (fn [all-generated-results]
@@ -43,6 +45,8 @@
    ["[^a-x{}]+"]
 
    ["[^a-x+{}]+"]
+
+   ["[-+]?[0-9]{1,16}[.][0-9]{1,6}"]
 
    ["[^{}]"
     (fn [all-generated-results]
@@ -205,11 +209,21 @@
               (str "All additional validations pass on the result " (pr-str regex)))))
       (catch Throwable t
         (println "Erorr in " (pr-str regex))
-        (throw t)))))
+        (throw t))))
+
+
+  (dotimes [_ 1000]
+    (doseq [regex fgt/valid-regexes]
+      (try
+        (let [result (sut/random-regex regex)]
+          (is (regex-matches-generated-string? regex result)))
+        (catch Throwable t
+          (println "Fail in " regex)
+          (throw t))))))
 
 
 (ct/defspec generative-regex-generation
-  500
+  1000
   (prop/for-all [regex-str fgen/gregex]
                 (let [result (sut/random-regex regex-str)]
                   (is (regex-matches-generated-string? regex-str result)))))

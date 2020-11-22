@@ -142,7 +142,7 @@
 (defmethod rwalk :POS_SET
   [[_ _ & clauses]]
 
-  ;; POS_SET = '[' (REGEX_CLAUSE | META_CHAR | RANGE)+ ']' ;
+  ;; POS_SET = '[' (ESCAPED | DOT | CHAR | META_CHAR | RANGE | POS_SET | NEG_SET)+ ']' ;
   ;; Sample tree for "[a-z]":
   ;; [:POS_SET "[" [:RANGE [:CHAR "a"] "-" [:CHAR "z"]] "]"]
 
@@ -155,7 +155,7 @@
 (defmethod rwalk :NEG_SET
   [[_ _ _ & clauses]]
 
-  ;; NEG_SET = '[' '^' (REGEX_CLAUSE | META_CHAR | RANGE)+ ']' ;
+  ;; NEG_SET = '[' '^' (ESCAPED | DOT | CHAR | META_CHAR | RANGE | POS_SET | NEG_SET)+ ']' ;
   ;; Sample tree for "[^a-z]":
   ;; [:NEG_SET "[" "^" [:RANGE [:CHAR "a"] "-" [:CHAR "z"]] "]"]
 

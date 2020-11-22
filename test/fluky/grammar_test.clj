@@ -1,5 +1,5 @@
 (ns fluky.grammar-test
-  (:require [clojure.test :as t]
+  (:require [clojure.test :refer :all]
             [clojure.test.check.clojure-test :as ct]
             [clojure.test.check.properties :as prop]
             [fluky.generators :as fgen]
@@ -77,13 +77,6 @@
    "[*--]*"])
 
 
-;; I wont add support for
-;; character classes like \a
-;; Possessive quantifier like ++ and *+ *?
-;; Java allows this but this is not a valid regex {1,2} {112}
-;; Ambiguous application (nesting of []) "[^[012]]{1}"
-;; ^ as the start of a line ^z-z
-
 (def invalid-regexes
   ["*"
    "**"
@@ -124,20 +117,20 @@
      exp))
 
 
-(t/deftest valid-samples
-  (t/testing "Valid regex syntax"
+(deftest valid-samples
+  (testing "Valid regex syntax"
     (doseq [regex-str valid-regexes]
-      (t/is (agreeable-regex? regex-str true)
-            (str "Expected to be valid but is not: " regex-str))))
+      (is (agreeable-regex? regex-str true)
+          (str "Expected to be valid but is not: " regex-str))))
 
-  (t/testing "Invalid regex syntax"
+  (testing "Invalid regex syntax"
     (doseq [regex-str invalid-regexes]
-      (t/is (agreeable-regex? regex-str false)
-            (str "Expected to be invalid but is: " regex-str)))))
+      (is (agreeable-regex? regex-str false)
+          (str "Expected to be invalid but is: " regex-str)))))
 
 
 (ct/defspec generative-syntax-validation
   500
   (prop/for-all [regex-str fgen/gregex]
-                (t/is (agreeable-regex? regex-str true)
-                      (str "Expected to be valid but is not: " regex-str))))
+                (is (agreeable-regex? regex-str true)
+                    (str "Expected to be valid but is not: " regex-str))))
