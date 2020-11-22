@@ -31,19 +31,19 @@ fluky.core=> (random-regex "[-+]?[0-9]{1,16}[.][0-9]{1,6}")
 
 ## What is supported
 
-`.` Match any character except newline
-`[` Start character class definition
-`]` End character class definition
-`?` 0 or 1 quantifier
-`*` 0 or more quantifiers
-`+` 1 or more quantifier
-`{` Start min/max quantifier
-`}` End min/max quantifier
+- `.` Match any character except newline
+- `[` Start character class definition
+- `]` End character class definition
+- `?` 0 or 1 quantifier
+- `*` 0 or more quantifiers
+- `+` 1 or more quantifier
+- `{` Start min/max quantifier
+- `}` End min/max quantifier
 
 Within a character class, the following meta characters are supported:
 
-`^` Negate the class, but only if the first character
-`-` Indicates character range
+- `^` Negate the class, but only if the first character
+- `-` Indicates character range
 
 ## What is not supported
 
