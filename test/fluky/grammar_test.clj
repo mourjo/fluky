@@ -1,14 +1,11 @@
 (ns fluky.grammar-test
-  (:require [fluky.grammar :as sut]
-            [instaparse.core :as insta]
-            [clojure.test.check :as tcheck]
-            [fluky.generators :as fgen]
+  (:require [clojure.test :as t]
             [clojure.test.check.clojure-test :as ct]
-            [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
-            [clojure.test :as t])
+            [fluky.generators :as fgen]
+            [fluky.grammar :as sut]
+            [instaparse.core :as insta])
   (:import java.util.regex.Pattern))
-
 
 (def valid-regexes
   [" ---------z-"
@@ -132,6 +129,7 @@
     (doseq [regex-str valid-regexes]
       (t/is (agreeable-regex? regex-str true)
             (str "Expected to be valid but is not: " regex-str))))
+
   (t/testing "Invalid regex syntax"
     (doseq [regex-str invalid-regexes]
       (t/is (agreeable-regex? regex-str false)
@@ -139,7 +137,7 @@
 
 
 (ct/defspec generative-syntax-validation
-  10000
+  500
   (prop/for-all [regex-str fgen/gregex]
                 (t/is (agreeable-regex? regex-str true)
                       (str "Expected to be valid but is not: " regex-str))))

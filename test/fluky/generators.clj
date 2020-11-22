@@ -1,13 +1,6 @@
 (ns fluky.generators
-  (:require [instaparse.core :as insta]
-            [clojure.test.check :as tcheck]
-            [clojure.test.check.clojure-test :as ct]
-            [clojure.test.check.generators :as gen]
-            [clojure.string :as cstr]
-            [clojure.test.check.properties :as prop]
-            [clojure.test :as t]))
-
-
+  (:require [clojure.string :as cstr]
+            [clojure.test.check.generators :as gen]))
 
 (def gchar
   (gen/frequency [[10 (gen/fmap str gen/char-alphanumeric)]
@@ -26,6 +19,7 @@
   (gen/one-of [(gen/fmap (fn [n] (format "{%d}" (Math/abs n))) gen/small-integer)
                (gen/return "*")
                (gen/return "+")
+               (gen/return ".")
                (gen/return "?")
                (gen/let [x (gen/fmap abs gen/small-integer)
                          y (gen/fmap abs gen/small-integer)]

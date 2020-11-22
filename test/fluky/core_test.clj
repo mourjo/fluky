@@ -1,14 +1,14 @@
 (ns fluky.core-test
-  (:require [clojure.test :refer :all]
-            [fluky.core :as sut]
-            [clojure.set :as cset]
-            [clojure.string :as cstr]
+  (:require [clojure.set :as cset]
+            [clojure.test :refer :all]
+            [clojure.test.check.clojure-test :as ct]
             [clojure.test.check.properties :as prop]
-            [fluky.generators :as fgen]
-            [clojure.test.check.clojure-test :as ct])
+            [fluky.core :as sut]
+            [fluky.generators :as fgen])
   (:import java.util.regex.Pattern))
 
-(def regexes
+
+(def sample-regexes
   [["[x-x]+"]
 
    ["[a-x]+"]
@@ -176,7 +176,7 @@
               all-generated-results))]])
 
 
-(defn valid?
+(defn regex-matches-generated-string?
   [regex-string result]
   (= result
      (re-matches (Pattern/compile regex-string)
@@ -190,13 +190,15 @@
 
 
 (deftest random-regex-validation-test
-  (doseq [[regex & additional-validations] regexes]
+  (doseq [[regex & additional-validations] sample-regexes]
     (try
       (let [results (atom [])]
+
         (dotimes [_ 1000]
           (let [result (sut/random-regex regex)]
-            (is (valid? regex result))
+            (is (regex-matches-generated-string? regex result))
             (swap! results conj result)))
+
         (when (seq additional-validations)
           (is ((apply every-pred additional-validations)
                @results)
@@ -207,7 +209,7 @@
 
 
 (ct/defspec generative-regex-generation
-  1000
+  500
   (prop/for-all [regex-str fgen/gregex]
                 (let [result (sut/random-regex regex-str)]
-                  (is (valid? regex-str result)))))
+                  (is (regex-matches-generated-string? regex-str result)))))

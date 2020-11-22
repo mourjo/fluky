@@ -1,6 +1,5 @@
 (ns fluky.grammar
-  (:require [instaparse.core :as insta]
-            [clojure.string :as cstr]))
+  (:require [instaparse.core :as insta]))
 
 (insta/defparser regex-grammar
   "
@@ -60,6 +59,8 @@ EXACT_QUANTIFIER = (ESCAPED | DOT | CHAR | POS_SET | NEG_SET) '{' NUMBER '}' ;
 
 
 (defn ->parse-error
+  "Generate a helpful error message if the input was not understood by
+  the grammar."
   [result]
   (try
     (let [msg (if (:index result)
@@ -71,9 +72,11 @@ EXACT_QUANTIFIER = (ESCAPED | DOT | CHAR | POS_SET | NEG_SET) '{' NUMBER '}' ;
     (catch Exception _
       (ex-info "Invalid regex" result))))
 
+
 (defn regex->tree
-  [s]
-  (let [res (regex-grammar s)]
-    (if (insta/failure? res)
-      (throw (->parse-error res))
-      res)))
+  "Given a regex string, generate a tree based on the grammar above."
+  [regex]
+  (let [tree (regex-grammar regex)]
+    (if (insta/failure? tree)
+      (throw (->parse-error tree))
+      tree)))
