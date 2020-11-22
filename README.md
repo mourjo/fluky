@@ -45,6 +45,19 @@ Within a character class, the following meta characters are supported:
 - `^` Negate the class, but only if the first character
 - `-` Indicates character range
 
+Only the following characrters are supported in the regex:
+```
+'a' 'A' 'b' 'B' 'c' 'C' 'd' 'D' 'e' 'E' 'f' 'F'
+'g' 'G' 'h' 'H' 'i' 'I' 'j' 'J' 'k' 'K' 'l' 'L'
+'m' 'M' 'n' 'N' 'o' 'O' 'p' 'P' 'q' 'Q' 'r' 'R'
+'s' 'S' 't' 'T' 'u' 'U' 'v' 'V' 'w' 'W' 'x' 'X'
+'y' 'Y' 'z' 'Z' '0' '1' '2' '3' '4' '5' '6' '7'
+'8' '9' '{' '}' '[' ']' ' ' '-' ':' '*' '+' '.'
+'\' '?'
+
+```
+
+
 ## What is not supported
 
 This supports only a basic grammar for regex, the following are not supported currently:
