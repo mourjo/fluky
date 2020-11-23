@@ -147,7 +147,7 @@
   ;; [:POS_SET "[" [:RANGE [:CHAR "a"] "-" [:CHAR "z"]] "]"]
 
   (let [candidates (shuffle (butlast clauses))
-        f (apply some-fn (mapv (comp :fn rwalk) candidates))]
+        f (apply some-fn (map (comp :fn rwalk) candidates))]
     {:type :selector
      :fn f}))
 
@@ -225,4 +225,4 @@
 (defn -main
   "Default entry point from the commandline"
   [regex]
-  (println (pr-str (random-regex regex))))
+  (prn (random-regex regex)))
