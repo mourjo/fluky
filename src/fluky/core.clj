@@ -16,7 +16,7 @@
             (let [typed-f (rwalk clause)]
               (if (= :selector (:type typed-f))
                 (str acc (utils/ffilter (:fn typed-f) (utils/ALPHABET)))
-                (str acc (cstr/join "" ((:fn typed-f) (utils/ALPHABET)))))))
+                (str acc (cstr/join "" ((:fn typed-f) utils/ALPHABET))))))
           ""
           clauses))
 
@@ -72,7 +72,7 @@
   {:type :collector
    :fn (fn [alpha]
          (let [n (inc (rand-int utils/BRANCH-FACTOR))]
-           (take n (filter (:fn (rwalk clause)) alpha))))})
+           (take n (utils/rfilter (:fn (rwalk clause)) (alpha)))))})
 
 
 (defmethod rwalk :STAR_QUANTIFIER
@@ -85,7 +85,7 @@
   {:type :collector
    :fn (fn [alpha]
          (let [n (rand-int utils/BRANCH-FACTOR)]
-           (take n (filter (:fn (rwalk clause)) alpha))))})
+           (take n (utils/rfilter (:fn (rwalk clause)) (alpha)))))})
 
 
 (defmethod rwalk :QMARK_QUANTIFIER
@@ -109,7 +109,7 @@
   {:type :collector
    :fn (fn [alpha]
          (let [n (rand-int 2)]
-           (take n (filter (:fn (rwalk clause)) alpha))))})
+           (take n (utils/rfilter (:fn (rwalk clause)) (alpha)))))})
 
 
 (defmethod rwalk :MIN_MAX_QUANTIFIER
@@ -123,7 +123,7 @@
    :fn (fn [alpha]
          (let [n (utils/rand-range (utils/parse-number lower)
                                    (utils/parse-number upper))]
-           (take n (filter (:fn (rwalk clause)) alpha))))})
+           (take n (utils/rfilter (:fn (rwalk clause)) (alpha)))))})
 
 
 (defmethod rwalk :EXACT_QUANTIFIER
@@ -136,7 +136,7 @@
   {:type :collector
    :fn (fn [alpha]
          (take (utils/parse-number n)
-               (filter (:fn (rwalk clause)) alpha)))})
+               (utils/rfilter (:fn (rwalk clause)) (alpha))))})
 
 
 (defmethod rwalk :POS_SET
