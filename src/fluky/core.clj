@@ -15,7 +15,7 @@
   (reduce (fn [acc clause]
             (let [typed-f (rwalk clause)]
               (if (= :selector (:type typed-f))
-                (str acc (utils/ffilter (:fn typed-f) (utils/ALPHABET)))
+                (str acc (utils/rffilter (:fn typed-f) (utils/ALPHABET)))
                 (str acc (cstr/join "" ((:fn typed-f) utils/ALPHABET))))))
           ""
           clauses))
@@ -174,8 +174,8 @@
         t (rwalk to)]
     {:type :selector
      :fn (fn [c]
-           (let [starting-char (utils/ffilter (:fn f) (utils/ALPHABET))
-                 ending-char (utils/ffilter (:fn t) (utils/ALPHABET))]
+           (let [starting-char (utils/rffilter (:fn f) (utils/ALPHABET))
+                 ending-char (utils/rffilter (:fn t) (utils/ALPHABET))]
              (if (<= (int starting-char) (int ending-char))
                (<= (int starting-char) (int c) (int ending-char))
                (throw (ex-info "Invalid range" {:clauses clauses})))))}))

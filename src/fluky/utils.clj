@@ -31,18 +31,16 @@
   (Long/parseLong (cstr/join "" digits)))
 
 
-(defn ffilter
-  "Find the first element that satisfies the predicate."
-  [p xs]
-  (let [p-rand (fn [x]
-                 (when (rand-nth [true false])
-                   (p x)))]
-    (first (filter p-rand xs))))
-
-
 (defn rfilter
+  "Filter but with some randomness."
   [p xs]
   (filter (fn [x]
             (when (rand-nth [true false])
               (p x)))
           xs))
+
+
+(defn rffilter
+  "Find the first element that satisfies the predicate, with some randomness."
+  [p xs]
+  (first (rfilter p xs)))
