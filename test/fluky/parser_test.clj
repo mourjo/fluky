@@ -1,4 +1,4 @@
-(ns fluky.parse-token-test
+(ns fluky.parser-test
   (:require [fluky.parser :as sut]
             [clojure.test :refer :all])
   (:import clojure.lang.ExceptionInfo

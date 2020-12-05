@@ -1,5 +1,6 @@
 (ns fluky.parser
-  (:require [fluky.lexer :as fl]))
+  (:require [fluky.lexer :as fl])
+  (:import java.util.Stack))
 
 
 
@@ -7,12 +8,12 @@
   (fn [_ token] (first token)))
 
 
-(defmethod parse-token :set
-  [processed-tokens [_ chars]]
+(defn parse-set
+  [chars]
   (when (empty? chars)
     (throw (ex-info "Empty range"
                     {:type :invalid-range})))
-  (let [stack (java.util.Stack.)]
+  (let [stack (Stack.)]
     (loop [[c & r] chars]
       (cond
         (not c) ::no-op
@@ -34,7 +35,12 @@
         :else
         (do (.push stack [:CHAR c])
             (recur r))))
-    (conj processed-tokens (into [:SET] (vec stack)))))
+    (vec stack)))
+
+
+(defmethod parse-token :set
+  [processed-tokens [_ chars]]
+  (conj processed-tokens (into [:SET] (parse-set chars))))
 
 (defmethod parse-token :qmark
   [processed-tokens token]
@@ -53,8 +59,8 @@
   (conj processed-tokens {:op (first token)}))
 
 (defmethod parse-token :neg-set
-  [processed-tokens token]
-  (conj processed-tokens {:op (first token)}))
+  [processed-tokens [_ chars]]
+  (conj processed-tokens (into [:NEG_SET] (parse-set chars))))
 
 (defmethod parse-token :plus
   [processed-tokens token]
