@@ -3,10 +3,8 @@
             [clojure.test.check.clojure-test :as ct]
             [clojure.test.check.properties :as prop]
             [fluky.generators :as fgen]
-            [fluky.grammar :as sut]
             [fluky.parser :as fp]
-            [fluky.random :as fr]
-            [instaparse.core :as insta])
+            [fluky.random :as fr])
   (:import java.util.regex.Pattern
            clojure.lang.ExceptionInfo))
 
@@ -106,12 +104,6 @@
          false)))
 
 
-(defn valid-by-grammar?
-  [s]
-  (let [res (sut/regex-grammar s)]
-    (not (insta/failure? res))))
-
-
 (defn valid-by-parser?
   [s]
   (try (fp/parse s)
@@ -122,7 +114,6 @@
 (defn agreeable-regex?
   [regex-str exp]
   (= (valid-java-pattern? regex-str)
-     (valid-by-grammar? regex-str)
      (valid-by-parser? regex-str)
      exp))
 

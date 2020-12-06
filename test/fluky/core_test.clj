@@ -4,8 +4,7 @@
             [clojure.test.check.clojure-test :as ct]
             [clojure.test.check.properties :as prop]
             [fluky.core :as sut]
-            [fluky.generators :as fgen]
-            [fluky.grammar-test :as fgt])
+            [fluky.generators :as fgen])
   (:import java.util.regex.Pattern))
 
 (def sample-regexes
