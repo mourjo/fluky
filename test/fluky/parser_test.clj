@@ -15,16 +15,26 @@
          false)))
 
 
-(defn invalid-range?
-  [s]
-  (try
-    (sut/parse s)
-    (catch ExceptionInfo e
-      (and (invalid-java-pattern? s)
-           (-> e
-               ex-data
-               :type
-               (= :invalid-range))))))
+(defn invalid?
+  ([t s]
+   (try
+     (sut/parse s)
+     (catch ExceptionInfo e
+       (and (invalid-java-pattern? s)
+            (-> e
+                ex-data
+                :type
+                (= t))))))
+  ([t s opts]
+   (if (:test-java-pattern? opts)
+     (invalid? t s)
+     (try
+       (sut/parse s)
+       (catch ExceptionInfo e
+         (-> e
+             ex-data
+             :type
+             (= t)))))))
 
 
 (defn validate-and-parse
@@ -157,12 +167,297 @@
 
   (is (= (validate-and-parse "[a-a]")
          [[:SET
-           [:RANGE [:CHAR \a] [:CHAR \a]]]])))
+           [:RANGE [:CHAR \a] [:CHAR \a]]]]))
 
+  (is (= (validate-and-parse "[a\\-z]")
+         [[:SET
+           [:CHAR \a]
+           [:CHAR \-]
+           [:CHAR \z]]]))
+
+  (is (= (validate-and-parse "a\\-z")
+         [[:CHAR \a]
+          [:CHAR \-]
+          [:CHAR \z]]))
+
+
+  (is (= (validate-and-parse "a?")
+         [[:QMARK_QUANTIFIER [:CHAR \a]]]))
+
+  (is (= (validate-and-parse "abc?")
+         [[:CHAR \a]
+          [:CHAR \b]
+          [:QMARK_QUANTIFIER [:CHAR \c]]]))
+
+  (is (= (validate-and-parse "[a]?")
+         [[:QMARK_QUANTIFIER [:SET [:CHAR \a]]]]))
+
+  (is (= (validate-and-parse "[abc]?")
+         [[:QMARK_QUANTIFIER
+           [:SET
+            [:CHAR \a]
+            [:CHAR \b]
+            [:CHAR \c]]]]))
+
+  (is (= (validate-and-parse "[a-c]?")
+         [[:QMARK_QUANTIFIER
+           [:SET
+            [:RANGE
+             [:CHAR \a]
+             [:CHAR \c]]]]]))
+
+  (is (= (validate-and-parse "[a-cd-e]?")
+         [[:QMARK_QUANTIFIER
+           [:SET
+            [:RANGE [:CHAR \a] [:CHAR \c]]
+            [:RANGE [:CHAR \d] [:CHAR \e]]]]]))
+
+  (is (= (validate-and-parse "[a-c\\-d-e]?")
+         [[:QMARK_QUANTIFIER
+           [:SET
+            [:RANGE [:CHAR \a] [:CHAR \c]]
+            [:CHAR \-]
+            [:RANGE [:CHAR \d] [:CHAR \e]]]]]))
+
+  (is (= (validate-and-parse "a*")
+         [[:STAR_QUANTIFIER [:CHAR \a]]]))
+
+  (is (= (validate-and-parse "abc*")
+         [[:CHAR \a]
+          [:CHAR \b]
+          [:STAR_QUANTIFIER [:CHAR \c]]]))
+
+  (is (= (validate-and-parse "[a]*")
+         [[:STAR_QUANTIFIER [:SET [:CHAR \a]]]]))
+
+  (is (= (validate-and-parse "[abc]*")
+         [[:STAR_QUANTIFIER
+           [:SET
+            [:CHAR \a]
+            [:CHAR \b]
+            [:CHAR \c]]]]))
+
+  (is (= (validate-and-parse "[a-c]*")
+         [[:STAR_QUANTIFIER
+           [:SET
+            [:RANGE
+             [:CHAR \a]
+             [:CHAR \c]]]]]))
+
+  (is (= (validate-and-parse "[a-cd-e]*")
+         [[:STAR_QUANTIFIER
+           [:SET
+            [:RANGE [:CHAR \a] [:CHAR \c]]
+            [:RANGE [:CHAR \d] [:CHAR \e]]]]]))
+
+  (is (= (validate-and-parse "[a-c\\-d-e]*")
+         [[:STAR_QUANTIFIER
+           [:SET
+            [:RANGE [:CHAR \a] [:CHAR \c]]
+            [:CHAR \-]
+            [:RANGE [:CHAR \d] [:CHAR \e]]]]]))
+
+  (is (= (validate-and-parse "a+")
+         [[:PLUS_QUANTIFIER [:CHAR \a]]]))
+
+  (is (= (validate-and-parse "abc+")
+         [[:CHAR \a]
+          [:CHAR \b]
+          [:PLUS_QUANTIFIER [:CHAR \c]]]))
+
+  (is (= (validate-and-parse "[a]+")
+         [[:PLUS_QUANTIFIER [:SET [:CHAR \a]]]]))
+
+  (is (= (validate-and-parse "[abc]+")
+         [[:PLUS_QUANTIFIER
+           [:SET
+            [:CHAR \a]
+            [:CHAR \b]
+            [:CHAR \c]]]]))
+
+  (is (= (validate-and-parse "[a-c]+")
+         [[:PLUS_QUANTIFIER
+           [:SET
+            [:RANGE
+             [:CHAR \a]
+             [:CHAR \c]]]]]))
+
+  (is (= (validate-and-parse "[a-cd-e]+")
+         [[:PLUS_QUANTIFIER
+           [:SET
+            [:RANGE [:CHAR \a] [:CHAR \c]]
+            [:RANGE [:CHAR \d] [:CHAR \e]]]]]))
+
+  (is (= (validate-and-parse "[a-c\\-d-e]+")
+         [[:PLUS_QUANTIFIER
+           [:SET
+            [:RANGE [:CHAR \a] [:CHAR \c]]
+            [:CHAR \-]
+            [:RANGE [:CHAR \d] [:CHAR \e]]]]]))
+
+  (is (= (validate-and-parse "a{1}")
+         [[:EXACT_QUANTIFIER [1] [:CHAR \a]]]))
+
+  (is (= (validate-and-parse "a{1,2}")
+         [[:MIN_MAX_QUANTIFIER [1,2] [:CHAR \a]]]))
+
+
+
+  (is (= (validate-and-parse "[a-z]{20,100}a")
+         [[:MIN_MAX_QUANTIFIER
+           [20 100]
+           [:SET [:RANGE [:CHAR \a] [:CHAR \z]]]]
+          [:CHAR \a]]))
+
+  (is (= (validate-and-parse "[a-zx]{0,100}")
+         [[:MIN_MAX_QUANTIFIER
+           [0 100]
+           [:SET
+            [:RANGE [:CHAR \a] [:CHAR \z]]
+            [:CHAR \x]]]]))
+
+  (is (= (validate-and-parse "[a-zx]{100}")
+         [[:EXACT_QUANTIFIER
+           [100]
+           [:SET
+            [:RANGE [:CHAR \a] [:CHAR \z]]
+            [:CHAR \x]]]]))
+
+  (is (= (validate-and-parse "[a-zx]{0}")
+         [[:EXACT_QUANTIFIER
+           [0]
+           [:SET
+            [:RANGE [:CHAR \a] [:CHAR \z]]
+            [:CHAR \x]]]]))
+
+  (is (= (validate-and-parse "[a-zx]{0,1}")
+         [[:MIN_MAX_QUANTIFIER
+           [0,1]
+           [:SET
+            [:RANGE [:CHAR \a] [:CHAR \z]]
+            [:CHAR \x]]]]))
+
+
+  (is (= (validate-and-parse "[a-zx]0,1}")
+         [[:SET
+           [:RANGE [:CHAR \a] [:CHAR \z]]
+           [:CHAR \x]]
+          [:CHAR \0]
+          [:CHAR \,]
+          [:CHAR \1]
+          [:CHAR \}]]))
+
+  (is (= (validate-and-parse "a{25}")
+         [[:EXACT_QUANTIFIER [25] [:CHAR \a]]]))
+
+  (is (= (validate-and-parse "abc{25}")
+         [[:CHAR \a]
+          [:CHAR \b]
+          [:EXACT_QUANTIFIER [25] [:CHAR \c]]]))
+
+  (is (= (validate-and-parse "[a]{25}")
+         [[:EXACT_QUANTIFIER [25] [:SET [:CHAR \a]]]]))
+
+  (is (= (validate-and-parse "[abc]{25}")
+         [[:EXACT_QUANTIFIER  [25]
+           [:SET
+            [:CHAR \a]
+            [:CHAR \b]
+            [:CHAR \c]]]]))
+
+  (is (= (validate-and-parse "[a-c]{25}")
+         [[:EXACT_QUANTIFIER [25]
+           [:SET
+            [:RANGE
+             [:CHAR \a]
+             [:CHAR \c]]]]]))
+
+  (is (= (validate-and-parse "[a-cd-e]{25}")
+         [[:EXACT_QUANTIFIER [25]
+           [:SET
+            [:RANGE [:CHAR \a] [:CHAR \c]]
+            [:RANGE [:CHAR \d] [:CHAR \e]]]]]))
+
+  (is (= (validate-and-parse "[a-c\\-d-e]{25}")
+         [[:EXACT_QUANTIFIER [25]
+           [:SET
+            [:RANGE [:CHAR \a] [:CHAR \c]]
+            [:CHAR \-]
+            [:RANGE [:CHAR \d] [:CHAR \e]]]]]))
+
+  (is (= (validate-and-parse "a{2,5}")
+         [[:MIN_MAX_QUANTIFIER [2 5] [:CHAR \a]]]))
+
+  (is (= (validate-and-parse "abc{2,5}")
+         [[:CHAR \a]
+          [:CHAR \b]
+          [:MIN_MAX_QUANTIFIER [2 5] [:CHAR \c]]]))
+
+  (is (= (validate-and-parse "[a]{2,5}")
+         [[:MIN_MAX_QUANTIFIER [2 5] [:SET [:CHAR \a]]]]))
+
+  (is (= (validate-and-parse "[abc]{2,5}")
+         [[:MIN_MAX_QUANTIFIER [2 5]
+           [:SET
+            [:CHAR \a]
+            [:CHAR \b]
+            [:CHAR \c]]]]))
+
+  (is (= (validate-and-parse "[a-c]{2,5}")
+         [[:MIN_MAX_QUANTIFIER [2 5]
+           [:SET
+            [:RANGE
+             [:CHAR \a]
+             [:CHAR \c]]]]]))
+
+  (is (= (validate-and-parse "[a-cd-e]{2,5}")
+         [[:MIN_MAX_QUANTIFIER [2 5]
+           [:SET
+            [:RANGE [:CHAR \a] [:CHAR \c]]
+            [:RANGE [:CHAR \d] [:CHAR \e]]]]]))
+
+  (is (= (validate-and-parse "[a-c\\-d-e]{2,5}")
+         [[:MIN_MAX_QUANTIFIER [2 5]
+           [:SET
+            [:RANGE [:CHAR \a] [:CHAR \c]]
+            [:CHAR \-]
+            [:RANGE [:CHAR \d] [:CHAR \e]]]]])))
+
+
+;; list of things not supported
+;; a?? -->  laziness not supported
 
 (deftest parse-invalid-test
-  (invalid-range? "[z-a]bcde")
-  (invalid-range? "[]")
-  (invalid-range? "[]a")
-  (invalid-range? "a[]a")
-  (invalid-range? "a[]"))
+  (is (invalid? :invalid-range "[z-a]bcde"))
+  (is (invalid? :invalid-range "[]"))
+  (is (invalid? :invalid-range "[]a"))
+  (is (invalid? :invalid-range "a[]a"))
+  (is (invalid? :invalid-range "a[]"))
+  (is (invalid? :dangling-meta-character "?"))
+  ;; laziness is valid regex but not implemented in our parser
+  (is (invalid? :dangling-meta-character "a??"
+               {:test-java-pattern? false}))
+  (is (invalid? :dangling-meta-character "*"))
+  (is (invalid? :dangling-meta-character "**"))
+  (is (invalid? :dangling-meta-character "a**"))
+  (is (invalid? :dangling-meta-character "+"))
+  (is (invalid? :dangling-meta-character "++"))
+  (is (invalid? :dangling-meta-character "a++"
+                {:test-java-pattern? false}))
+  (is (invalid? :dangling-meta-character "+*-"))
+  (is (invalid? :dangling-meta-character "+-*"))
+  (is (invalid? :dangling-meta-character "-+*"))
+  (is (invalid? :dangling-meta-character "-+?*"))
+  (is (invalid? :dangling-meta-character "-+?*?"))
+  (is (invalid? :dangling-meta-character "?-"))
+
+  (is (invalid? :invalid-quantifier "[a-zx]{10,1}"))
+  ;; Java considers this valid as a lower bound only, but is not implemented in our parser
+  (is (invalid? :invalid-quantifier "[a-zx]{10,}"
+                {:test-java-pattern? false}))
+  (is (invalid? :invalid-quantifier "[a-zx]{,,}"))
+  (is (invalid? :invalid-quantifier "[a-zx]{,}"))
+  (is (invalid? :invalid-quantifier "[a-zx]{,19}"))
+  (is (invalid? :invalid-quantifier "[a-zx]{-19}"))
+  (is (invalid? :invalid-quantifier "[a-zx]{s}"))
+  (is (invalid? :invalid-range "[]{10,1}")))

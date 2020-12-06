@@ -66,6 +66,9 @@
   (is (= (sut/lex "a\\-z")
          [[:char \a] [:escaped \-] [:char \z]]))
 
+  (is (= (sut/lex "[a\\-z]")
+         [[:set [\a [:escaped \-] \z]]]))
+
   ;; this is invalid but the lexer does not know that:
   (is (= (sut/lex "[a-z.]+*")
          [[:set [\a \- \z \.]] [:plus] [:star]]))
