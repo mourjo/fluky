@@ -71,10 +71,10 @@
                      :type :dangling-meta-character})))
   (let [previous (peek processed-tokens)
         is-prev-neg? (= :NEG_SET (first previous))
-        is-prev-dot? (= :DOT previous)
+        is-prev-dot? (= :DOT (first previous))
         dp (case (first previous)
              (:NEG_SET :SET) (rest previous)
-             :CHAR previous
+             :CHAR [previous]
              nil)
         [qkey qf] (case (first token)
                     :qmark [:QMARK_QUANTIFIER (fn [curr]
@@ -187,10 +187,10 @@
         quantifier-type (if (and l u) :MIN_MAX_QUANTIFIER :EXACT_QUANTIFIER)
         previous-token (peek processed-tokens)
         is-prev-neg? (= :NEG_SET (first previous-token))
-        is-prev-dot? (= :DOT previous-token)
+        is-prev-dot? (= :DOT (first previous-token))
         dp (case (first previous-token)
              (:NEG_SET :SET) (rest previous-token)
-             :CHAR previous-token
+             :CHAR [previous-token]
              nil)]
     (when (not (<= 1 (count bounds) 2))
       (throw (ex-info "Quantifier can have 1 or 2 bounds"

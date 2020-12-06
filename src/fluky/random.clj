@@ -23,9 +23,9 @@
 
 
 (defn rand-char-from-range
-  [range]
-  (when (and *enable-random-generation* (seq range))
-    (char (random-in-range (rand-nth range)))))
+  [r]
+  (when (and *enable-random-generation* (seq r))
+    (char (random-in-range (rand-nth r)))))
 
 
 (defn any-rand-char
@@ -33,7 +33,7 @@
   (when *enable-random-generation* (rand-char-from-range default-range)))
 
 
-(let [alpha (set (seq "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0987654321"))]
+(let [alpha (set (map char (range (dec (int \0)) (inc (int \z)))))]
   (defn rand-char-from-negative-range
     [neg-range]
     ;; Due to lack of time, using enumeration here, but it is possible to break

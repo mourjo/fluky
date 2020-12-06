@@ -3,12 +3,9 @@
             [clojure.test.check.generators :as gen]))
 
 (def gchar
-  (gen/frequency [[10 (gen/fmap str gen/char-alphanumeric)]
-                  [1  (gen/one-of [(gen/return "\\-")
-                                   (gen/return "\\(")
-                                   (gen/return "\\)")
-                                   (gen/return "\\]")
-                                   (gen/return "\\[")])]]))
+  (gen/fmap str gen/char-alphanumeric))
+
+
 (defn abs
   [s]
   (Math/abs s))
@@ -53,7 +50,8 @@
   (gen/let [a gen/char-alpha-numeric
             b gen/char-alpha-numeric
             q quantifier
-            neg? gen/boolean]
+            neg? (gen/frequency [[1 (gen/return true)]
+                                 [100 (gen/return false)]])]
     (let [x (char (min (int a) (int b)))
           y (char (max (int a) (int b)))]
       (if neg?
