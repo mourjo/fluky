@@ -5,6 +5,7 @@
             [fluky.generators :as fgen]
             [fluky.grammar :as sut]
             [fluky.parser :as fp]
+            [fluky.random :as fr]
             [instaparse.core :as insta])
   (:import java.util.regex.Pattern
            clojure.lang.ExceptionInfo))
@@ -127,19 +128,21 @@
 
 
 (deftest valid-samples
-  (testing "Valid regex syntax"
-    (doseq [regex-str valid-regexes]
-      (is (agreeable-regex? regex-str true)
-          (str "Expected to be valid but is not: " regex-str))))
+  (binding [fr/*enable-random-generation* false]
+    (testing "Valid regex syntax"
+      (doseq [regex-str valid-regexes]
+        (is (agreeable-regex? regex-str true)
+            (str "Expected to be valid but is not: " regex-str))))
 
-  (testing "Invalid regex syntax"
-    (doseq [regex-str invalid-regexes]
-      (is (agreeable-regex? regex-str false)
-          (str "Expected to be invalid but is: " regex-str)))))
+    (testing "Invalid regex syntax"
+      (doseq [regex-str invalid-regexes]
+        (is (agreeable-regex? regex-str false)
+            (str "Expected to be invalid but is: " regex-str))))))
 
 
 (ct/defspec generative-syntax-validation
   1000
   (prop/for-all [regex-str fgen/gregex]
-                (is (agreeable-regex? regex-str true)
-                    (str "Expected to be valid but is not: " regex-str))))
+                (binding [fr/*enable-random-generation* false]
+                  (is (agreeable-regex? regex-str true)
+                      (str "Expected to be valid but is not: " regex-str)))))

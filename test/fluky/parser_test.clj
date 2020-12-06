@@ -5,6 +5,13 @@
            [java.util.regex Pattern PatternSyntaxException]))
 
 
+(defn parse-tree
+  [s]
+  (-> s
+      sut/parse
+      :processed-tokens))
+
+
 (defn invalid-java-pattern?
   [s]
   (try (Pattern/compile s)
@@ -18,7 +25,7 @@
 (defn invalid?
   ([t s]
    (try
-     (sut/parse s)
+     (parse-tree s)
      (catch ExceptionInfo e
        (and (invalid-java-pattern? s)
             (-> e
@@ -29,7 +36,7 @@
    (if (:test-java-pattern? opts)
      (invalid? t s)
      (try
-       (sut/parse s)
+       (parse-tree s)
        (catch ExceptionInfo e
          (-> e
              ex-data
@@ -40,7 +47,7 @@
 (defn validate-and-parse
   [s]
   (when-not (invalid-java-pattern? s)
-    (sut/parse s)))
+    (parse-tree s)))
 
 
 (deftest parse-test
@@ -60,7 +67,7 @@
            [:CHAR \b]
            [:CHAR \c]]]))
 
-  (is (= (sut/parse "[abc[]")
+  (is (= (parse-tree "[abc[]")
          ;; this is interpreted differently by Java where Java considers this invalid:
          ;; Execution error (PatternSyntaxException) at java.util.regex.Pattern/error (Pattern.java:1955).
          ;; Unclosed character class near index 5
@@ -465,7 +472,7 @@
            [:CHAR \b]
            [:CHAR \c]]]))
 
-  (is (= (sut/parse "[^abc[]")
+  (is (= (parse-tree "[^abc[]")
          ;; this is interpreted differently by Java where Java considers this invalid:
          ;; Execution error (PatternSyntaxException) at java.util.regex.Pattern/error (Pattern.java:1955).
          ;; Unclosed character class near index 5

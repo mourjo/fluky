@@ -4,6 +4,10 @@
 
 ;; Note. This is not uniformly random.
 
+
+(def ^{:dynamic true} *enable-random-generation* true)
+
+
 (def default-range
   [[:RANGE [:CHAR \a] [:CHAR \z]]
    [:RANGE [:CHAR \A] [:CHAR \Z]]
@@ -12,20 +16,21 @@
 
 (defn random-in-range
   [[t & range]]
-  (case t
-    :RANGE (char (apply fu/rand-range (mapv (comp int second) range)))
-    :CHAR (first range)))
+  (when *enable-random-generation*
+    (case t
+      :RANGE (char (apply fu/rand-range (mapv (comp int second) range)))
+      :CHAR (first range))))
 
 
 (defn rand-char-from-range
   [range]
-  (when (seq range)
+  (when (and *enable-random-generation* (seq range))
     (char (random-in-range (rand-nth range)))))
 
 
 (defn any-rand-char
   []
-  (rand-char-from-range default-range))
+  (when *enable-random-generation* (rand-char-from-range default-range)))
 
 
 (let [alpha (set (seq "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0987654321"))]
@@ -39,17 +44,18 @@
     ;; g-z
     ;; At this point, the `rand-char-from-range` may be used
 
-    (let [reducer (fn [acc [t & r]]
-                    (into acc
-                          (case t
-                            :RANGE (map char (apply fu/range-incl (mapv (comp int second) r)))
-                            :CHAR r)))
-          possibilities (->> neg-range
-                             (reduce reducer #{})
-                             (cset/difference alpha)
-                             seq)]
-      (if possibilities
-        (rand-nth possibilities)
-        (throw (ex-info "No possibilities in A-Za-z0-9"
-                        {:range neg-range
-                         :type :no-possibility}))))))
+    (when *enable-random-generation*
+          (let [reducer (fn [acc [t & r]]
+                          (into acc
+                                (case t
+                                  :RANGE (map char (apply fu/range-incl (mapv (comp int second) r)))
+                                  :CHAR r)))
+                possibilities (->> neg-range
+                                   (reduce reducer #{})
+                                   (cset/difference alpha)
+                                   seq)]
+            (if possibilities
+              (rand-nth possibilities)
+              (throw (ex-info "No possibilities in A-Za-z0-9"
+                              {:range neg-range
+                               :type :no-possibility})))))))
