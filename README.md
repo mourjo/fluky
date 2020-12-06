@@ -45,69 +45,10 @@ Within a character class, the following meta characters are supported:
 - `^` Negate the class, but only if the first character
 - `-` Indicates character range
 
-Only the following characrters are supported in the regex:
-```
-'a' 'A' 'b' 'B' 'c' 'C' 'd' 'D' 'e' 'E' 'f' 'F'
-'g' 'G' 'h' 'H' 'i' 'I' 'j' 'J' 'k' 'K' 'l' 'L'
-'m' 'M' 'n' 'N' 'o' 'O' 'p' 'P' 'q' 'Q' 'r' 'R'
-'s' 'S' 't' 'T' 'u' 'U' 'v' 'V' 'w' 'W' 'x' 'X'
-'y' 'Y' 'z' 'Z' '0' '1' '2' '3' '4' '5' '6' '7'
-'8' '9' '{' '}' '[' ']' ' ' '-' ':' '*' '+' '.'
-'\' '?'
 
-```
-
-
-## What is not supported
-
-This supports only a basic grammar for regex, the following are not supported currently:
-1. Character classes like `\a`
-2. Possessive quantifier like `++` `*+` `*?`
-3. `^` as the start of a line `^z-z`
-4. `^` at anywhere outside `[]`
-5. `|` Start of alternative branch
-6. `(` Start subpattern
-7. `)` End subpattern
-8. `\1` back reference
-
-## Implementaion
-
-This uses a simple grammar to generate a hiccup tree using
-https://github.com/Engelberg/instaparse and parses the tree to generate random strings.
-
-Sample tree for a string `[a-z]{5}`
-```
-[:REGEX
- [:REGEX_CLAUSE
-  [:EXACT_QUANTIFIER
-   [:POS_SET "[" [:RANGE [:CHAR "a"] "-" [:CHAR "z"]] "]"]
-   "{"
-   [:NUMBER "5"]
-   "}"]]]
-```
-
-Sample tree for `[-+]?[0-9]{1,16}[.][0-9]{1,6}`
-```
-[:REGEX
- [:REGEX_CLAUSE [:QMARK_QUANTIFIER [:POS_SET "[" [:CHAR "-"] [:META_CHAR "+"] "]"] "?"]]
- [:REGEX_CLAUSE
-  [:MIN_MAX_QUANTIFIER
-   [:POS_SET "[" [:RANGE [:CHAR "0"] "-" [:CHAR "9"]] "]"]
-   "{"
-   [:NUMBER "1"]
-   ","
-   [:NUMBER "1" "6"]
-   "}"]]
- [:REGEX_CLAUSE [:POS_SET "[" [:META_CHAR "."] "]"]]
- [:REGEX_CLAUSE
-  [:MIN_MAX_QUANTIFIER
-   [:POS_SET "[" [:RANGE [:CHAR "0"] "-" [:CHAR "9"]] "]"]
-   "{"
-   [:NUMBER "1"]
-   ","
-   [:NUMBER "6"]
-   "}"]]]
-```
+## Implementation Note
+1. Negation is not optimized, so it might take longer, this is due to lack of time, see fluky.random
+2. Some regexes, especially those with nested brackets, may not match with Java's pattern compilation but it matches the regex parser in https://regexr.com/
 
 ## License
 
