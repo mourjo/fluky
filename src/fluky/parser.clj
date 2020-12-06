@@ -42,13 +42,13 @@
 
 
 (defmethod parse-token :set
-  [processed-tokens [_ chars]]
-  (conj processed-tokens (into [:SET] (parse-set chars))))
+  [result [_ chars]]
+  (update result :processed-tokens conj (into [:SET] (parse-set chars))))
 
 
 (defmethod parse-token :neg-set
-  [processed-tokens [_ chars]]
-  (conj processed-tokens (into [:NEG_SET] (parse-set chars))))
+  [result [_ chars]]
+  (update result :processed-tokens conj (into [:NEG_SET] (parse-set chars))))
 
 
 (def quantifiable?
@@ -56,7 +56,7 @@
 
 
 (defn parse-quantifier
-  [processed-tokens token]
+  [{:keys [processed-tokens] :as result} token]
   (when (empty? processed-tokens)
     (throw (ex-info "Dangling meta character"
                     {:token token
@@ -71,21 +71,23 @@
       (throw (ex-info "Dangling meta character"
                       {:token token
                        :type :dangling-meta-character})))
-    (conj (pop processed-tokens)
-          [qkey previous])))
+    (update result
+            :processed-tokens (fn [current-tokens]
+                                (conj (pop current-tokens)
+                                      [qkey previous])))))
 
 
 (defmethod parse-token :qmark
-  [processed-tokens token]
-  (parse-quantifier processed-tokens token))
+  [result token]
+  (parse-quantifier result token))
 
 (defmethod parse-token :star
-  [processed-tokens token]
-  (parse-quantifier processed-tokens token))
+  [result token]
+  (parse-quantifier result token))
 
 (defmethod parse-token :plus
-  [processed-tokens token]
-  (parse-quantifier processed-tokens token))
+  [result token]
+  (parse-quantifier result token))
 
 
 (defn read-int
@@ -127,7 +129,7 @@
 
 
 (defmethod parse-token :quantifier
-  [processed-tokens [_ args]]
+  [{:keys [processed-tokens] :as result} [_ args]]
   (when (empty? processed-tokens)
     (throw (ex-info "Dangling meta character"
                     {:token args
@@ -148,27 +150,32 @@
       (throw (ex-info "Dangling meta character"
                       {:token args
                        :type :dangling-meta-character})))
-    (conj (pop processed-tokens)
-          [quantifier-type bounds previous-token])))
+
+    (update result
+            :processed-tokens
+            (fn [current-processed]
+              (conj (pop current-processed)
+                    [quantifier-type bounds previous-token])))))
 
 
 (defmethod parse-token :char
-  [processed-tokens token]
-  (conj processed-tokens [:CHAR (second token)]))
+  [result [_ ch]]
+  (update result :processed-tokens conj [:CHAR ch]))
 
 
 (defmethod parse-token :escaped
-  [processed-tokens [_ ch]]
-  (conj processed-tokens [:CHAR ch]))
+  [result [_ ch]]
+  (update result :processed-tokens conj [:CHAR ch]))
 
 
 (defmethod parse-token :dot
-  [processed-tokens token]
-  (conj processed-tokens [:DOT]))
+  [result _]
+  (update result :processed-tokens conj [:DOT]))
 
 
 (defn parse
   [s]
-  (reduce parse-token
-          []
-          (fl/lex s)))
+  (:processed-tokens
+   (reduce parse-token
+           {:processed-tokens []}
+           (fl/lex s))))
