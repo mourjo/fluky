@@ -6,6 +6,11 @@
   #{\+ \* \- \\ \? \{ \} \[ \] \( \) \.})
 
 
+(def charset
+  (set
+   "()^\\,{}[]+-*?.ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0987654321"))
+
+
 (defn tokenify
   [ch]
   (if (sequential? ch)
@@ -30,6 +35,11 @@
 (defn tokenize
   [{:keys [semi ctx] :as acc} c]
   (cond
+    (not (charset c))
+    (throw (ex-info "Unsupported character"
+                    {:char c
+                     :type :lexer-error}))
+
 
     (:escaped? ctx)
     (if (escapeable? c)

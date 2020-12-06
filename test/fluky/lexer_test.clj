@@ -74,6 +74,7 @@
          [[:set [\a \- \z \.]] [:plus] [:star]]))
 
   (is (invalid? "{"))
+  (is (invalid? " "))
   (is (invalid? "["))
   (is (invalid? "\\8"))
   (is (invalid? "\\"))

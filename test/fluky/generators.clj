@@ -4,7 +4,6 @@
 
 (def gchar
   (gen/frequency [[10 (gen/fmap str gen/char-alphanumeric)]
-                  [1  (gen/return " ")]
                   [1  (gen/one-of [(gen/return "\\-")
                                    (gen/return "\\(")
                                    (gen/return "\\)")

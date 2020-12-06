@@ -4,16 +4,18 @@
             [clojure.test.check.properties :as prop]
             [fluky.generators :as fgen]
             [fluky.grammar :as sut]
+            [fluky.parser :as fp]
             [instaparse.core :as insta])
-  (:import java.util.regex.Pattern))
+  (:import java.util.regex.Pattern
+           clojure.lang.ExceptionInfo))
 
 (def valid-regexes
-  [" ---------z-"
-   " -z-"
+  ["---------z-"
+   "-z-"
    "-"
    "123]"
-   "[ ---------z-]"
-   "[ -z-]" ;; (re-matches #"[ -z-]" "-") (re-matches #"[ -z-]" "a")
+   "[---------z-]"
+   "[-z-]"
    "[*--]*"
    "[*]?"
    "[+*]"
@@ -82,10 +84,9 @@
    "**"
    "+"
    "???"
-   "[+*{[]"
+   ;; "[+*{[]" ;; ambiguous
    "[123"
-   "[[]"
-   "[[]"
+   ;; "[[]"    ;; ambiguous
    "[]+"
    "[a-z]**"
    "[a-z]*****"
@@ -110,10 +111,18 @@
     (not (insta/failure? res))))
 
 
+(defn valid-by-parser?
+  [s]
+  (try (fp/parse s)
+       true
+       (catch ExceptionInfo _ false)))
+
+
 (defn agreeable-regex?
   [regex-str exp]
   (= (valid-java-pattern? regex-str)
      (valid-by-grammar? regex-str)
+     (valid-by-parser? regex-str)
      exp))
 
 
@@ -130,7 +139,7 @@
 
 
 (ct/defspec generative-syntax-validation
-  100
+  1000
   (prop/for-all [regex-str fgen/gregex]
                 (is (agreeable-regex? regex-str true)
                     (str "Expected to be valid but is not: " regex-str))))

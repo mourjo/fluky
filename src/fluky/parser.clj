@@ -46,6 +46,15 @@
   (conj processed-tokens (into [:SET] (parse-set chars))))
 
 
+(defmethod parse-token :neg-set
+  [processed-tokens [_ chars]]
+  (conj processed-tokens (into [:NEG_SET] (parse-set chars))))
+
+
+(def quantifiable?
+  #{:NEG_SET :SET :CHAR :DOT})
+
+
 (defn parse-quantifier
   [processed-tokens token]
   (when (empty? processed-tokens)
@@ -58,7 +67,7 @@
                :star :STAR_QUANTIFIER
                :plus :PLUS_QUANTIFIER
                :quantifier :EITHER_MIN_MAX_OR_EXACT)]
-    (when-not (#{:SET :CHAR} (first previous))
+    (when-not (quantifiable? (first previous))
       (throw (ex-info "Dangling meta character"
                       {:token token
                        :type :dangling-meta-character})))
@@ -124,7 +133,8 @@
                     {:token args
                      :type :dangling-meta-character})))
   (let [[l u :as bounds] (read-quantifier-bounds args)
-        quantifier-type (if (and l u) :MIN_MAX_QUANTIFIER :EXACT_QUANTIFIER)]
+        quantifier-type (if (and l u) :MIN_MAX_QUANTIFIER :EXACT_QUANTIFIER)
+        previous-token (peek processed-tokens)]
     (when (not (<= 1 (count bounds) 2))
       (throw (ex-info "Quantifier can have 1 or 2 bounds"
                       {:type :invalid-quantifier
@@ -134,26 +144,27 @@
       (throw (ex-info "Invalid range in quantifier lower must be <= upper"
                       {:type :invalid-quantifier
                        :token args})))
+    (when-not (quantifiable? (first previous-token))
+      (throw (ex-info "Dangling meta character"
+                      {:token args
+                       :type :dangling-meta-character})))
+    (conj (pop processed-tokens)
+          [quantifier-type bounds previous-token])))
 
-    (let [previous-token (peek processed-tokens)]
-      (when-not (#{:SET :CHAR} (first previous-token))
-        (throw (ex-info "Dangling meta character"
-                        {:token args
-                         :type :dangling-meta-character})))
-      (conj (pop processed-tokens)
-            [quantifier-type bounds previous-token]))))
 
 (defmethod parse-token :char
   [processed-tokens token]
   (conj processed-tokens [:CHAR (second token)]))
 
-(defmethod parse-token :neg-set
-  [processed-tokens [_ chars]]
-  (conj processed-tokens (into [:NEG_SET] (parse-set chars))))
 
 (defmethod parse-token :escaped
   [processed-tokens [_ ch]]
   (conj processed-tokens [:CHAR ch]))
+
+
+(defmethod parse-token :dot
+  [processed-tokens token]
+  (conj processed-tokens [:DOT]))
 
 
 (defn parse
