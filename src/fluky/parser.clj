@@ -160,22 +160,31 @@
 
 (defmethod parse-token :char
   [result [_ ch]]
-  (update result :processed-tokens conj [:CHAR ch]))
+  (-> result
+      (update :processed-tokens conj [:CHAR ch])
+      (update :random-subs conj [ch])))
 
 
 (defmethod parse-token :escaped
   [result [_ ch]]
-  (update result :processed-tokens conj [:CHAR ch]))
+  (-> result
+      (update :processed-tokens conj [:CHAR ch])
+      (update :random-subs conj [ch])))
+
+
 
 
 (defmethod parse-token :dot
   [result _]
-  (update result :processed-tokens conj [:DOT]))
+  (-> result
+      (update :processed-tokens conj [:DOT])
+      ))
 
 
 (defn parse
   [s]
   (:processed-tokens
    (reduce parse-token
-           {:processed-tokens []}
+           {:processed-tokens []
+            :random-subs []}
            (fl/lex s))))

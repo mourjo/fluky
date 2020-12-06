@@ -21,6 +21,7 @@
 (defn rand-range
   "Return a random number between bounds"
   [low high]
+  (assert (<= low high))
   (let [r (rand-int (- (inc high) low))]
     (+ low r)))
 
@@ -44,3 +45,8 @@
   "Find the first element that satisfies the predicate, with some randomness."
   [p xs]
   (first (rfilter p xs)))
+
+
+(defn range-incl
+  [low high]
+  (range low (inc high)))
