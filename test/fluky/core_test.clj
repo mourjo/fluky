@@ -1,5 +1,6 @@
 (ns fluky.core-test
   (:require [clojure.set :as cset]
+            [clojure.string :as cs]
             [clojure.test :refer :all]
             [clojure.test.check.clojure-test :as ct]
             [clojure.test.check.properties :as prop]
@@ -176,6 +177,49 @@
    [".{5,6}"
     (fn [all-generated-results]
       (every? (fn [x] (<= 5 (count x) 6))
+              all-generated-results))]
+
+   ["a*b?c+d{3,4}"
+    (fn [all-generated-results]
+      (every? (fn [x]
+                (let [fc (frequencies x)]
+                  (and (<= 0 (fc \a 0))
+                       (<= (fc \b 0) 1)
+                       (<= 3 (fc \d) 4)
+                       (<= 1 (fc \c))
+                       (<= 4 (count x)))))
+              all-generated-results))]
+
+   ["[a]*b?c+d{3,4}"
+    (fn [all-generated-results]
+      (every? (fn [x]
+                (let [fc (frequencies x)]
+                  (and (<= 0 (fc \a 0))
+                       (<= (fc \b 0) 1)
+                       (<= 3 (fc \d) 4)
+                       (<= 1 (fc \c))
+                       (<= 4 (count x)))))
+              all-generated-results))]
+
+   ["[a]*b?c+[d]{3,4}"
+    (fn [all-generated-results]
+      (every? (fn [x]
+                (let [fc (frequencies x)]
+                  (and (<= 0 (fc \a 0))
+                       (<= (fc \b 0) 1)
+                       (<= 3 (fc \d) 4)
+                       (<= 1 (fc \c))
+                       (<= 4 (count x)))))
+              all-generated-results))]
+
+   ["[xyz]{20,30}"
+    (fn [all-generated-results]
+      (every? (fn [x]
+                (let [fc (frequencies x)]
+                  (and (<= (fc \x 0) 30)
+                       (<= (fc \y 0) 30)
+                       (<= (fc \z 0) 30)
+                       (<= 20 (count x) 30))))
               all-generated-results))]])
 
 
@@ -205,8 +249,7 @@
         (when (seq additional-validations)
           (is ((apply every-pred additional-validations)
                @results)
-              (str "All additional validations pass on the result " (pr-str regex))))
-        )
+              (str "All additional validations pass on the result " (pr-str regex)))))
       (catch Throwable t
         (println "Erorr in " (pr-str regex))
         (throw t))))

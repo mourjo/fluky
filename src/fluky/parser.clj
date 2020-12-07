@@ -14,32 +14,28 @@
   (when (empty? chars)
     (throw (ex-info "Empty range"
                     {:type :invalid-range})))
-  (let [stack (Stack.)]
-    (loop [[c & r] chars]
-      (cond
-        (not c)
-        ::no-op
+  (loop [[c & r] chars
+         stack []]
+    (cond
+      (not c)
+      stack
 
-        (and (= c \-) (not (.isEmpty stack))
-             (seq r) (= :CHAR (first (.peek stack))))
-        (let [tos (.pop stack)]
-          (when (not (<= (int (second tos)) (int (first r))))
-            (throw (ex-info "Invalid range"
-                            {:range [(second tos) (first r)]
-                             :type :invalid-range})))
-          (.push stack [:RANGE tos [:CHAR (first r)]])
-          (recur (rest r)))
+      (and (= c \-) (seq stack)
+           (seq r) (= :CHAR (first (peek stack))))
+      (let [tos (peek stack)]
+        (when (not (<= (int (second tos)) (int (first r))))
+          (throw (ex-info "Invalid range"
+                          {:range [(second tos) (first r)]
+                           :type :invalid-range})))
+        (recur (rest r) (conj (pop stack) [:RANGE tos [:CHAR (first r)]])))
 
 
-        (and (sequential? c)
-             (= :escaped (first c)))
-        (do (.push stack [:CHAR (second c)])
-            (recur r))
+      (and (sequential? c)
+           (= :escaped (first c)))
+      (recur r (conj stack [:CHAR (second c)]))
 
-        :else
-        (do (.push stack [:CHAR c])
-            (recur r))))
-    (vec stack)))
+      :else
+      (recur r (conj stack [:CHAR c])))))
 
 
 (defmethod parse-token :set
