@@ -132,7 +132,7 @@
 
 
 (ct/defspec generative-syntax-validation
-  1500
+  2500
   (prop/for-all [regex-str fgen/gregex]
                 (binding [fr/*enable-random-generation* false]
                   (is (agreeable-regex? regex-str true)

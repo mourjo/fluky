@@ -57,6 +57,7 @@
         (update :processed-tokens conj (into [:NEG_SET] r))
         (assoc :random-subs (fr/generate-neg-set result r)))))
 
+
 (defn parse-quantifier
   [{:keys [processed-tokens] :as result} token]
   (when (empty? processed-tokens)
@@ -65,9 +66,9 @@
                      :type :dangling-meta-character})))
   (let [previous (peek processed-tokens)
         qkey (case (first token)
-                    :qmark :QMARK_QUANTIFIER
-                    :star  :STAR_QUANTIFIER
-                    :plus  :PLUS_QUANTIFIER)]
+               :qmark :QMARK_QUANTIFIER
+               :star  :STAR_QUANTIFIER
+               :plus  :PLUS_QUANTIFIER)]
     (when-not (fpu/quantifiable? (first previous))
       (throw (ex-info "Dangling meta character"
                       {:token token
@@ -75,6 +76,7 @@
     (update result :processed-tokens (fn [current-tokens]
                                        (conj (pop current-tokens)
                                              [qkey previous])))))
+
 
 (defmethod parse-token :qmark
   [result token]
@@ -97,44 +99,13 @@
       (assoc :random-subs (fr/generate-plus result))))
 
 
-(defn read-quantifier-bounds
-  [chars]
-  (:bounds
-   (reduce (fn [{:keys [current bounds] :as acc} ch]
-             (cond
-
-               (and (= ch \,) (seq bounds))
-               (throw (ex-info "Double commas not allowed in quantifier"
-                               {:type :invalid-quantifier
-                                :token chars}))
-
-               (and (#{::EOF \,} ch) (empty? current))
-               (throw (ex-info "Empty quantifier range"
-                               {:type :invalid-quantifier
-                                :token chars}))
-
-               (#{::EOF \,} ch)
-               (-> acc
-                   (assoc :current [])
-                   (update :bounds conj (fpu/read-int current)))
-
-               (not (<= (int \0) (int ch) (int \9)))
-               (throw (ex-info "Invalid range in quantifier"
-                               {:type :invalid-quantifier
-                                :token chars}))
-
-               :else (update acc :current conj ch)))
-           {:bounds [] :current []}
-           (conj chars ::EOF))))
-
-
 (defmethod parse-token :quantifier
   [{:keys [processed-tokens] :as result} [_ args]]
   (when (empty? processed-tokens)
     (throw (ex-info "Dangling meta character"
                     {:token args
                      :type :dangling-meta-character})))
-  (let [[l u :as bounds] (read-quantifier-bounds args)
+  (let [[l u :as bounds] (fpu/read-quantifier-bounds args)
         quantifier-type (if (and l u) :MIN_MAX_QUANTIFIER :EXACT_QUANTIFIER)
         previous-token (peek processed-tokens)]
     (when (not (<= 1 (count bounds) 2))
