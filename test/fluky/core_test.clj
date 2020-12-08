@@ -220,7 +220,11 @@
                        (<= (fc \y 0) 30)
                        (<= (fc \z 0) 30)
                        (<= 20 (count x) 30))))
-              all-generated-results))]])
+              all-generated-results))]
+
+   ["[^a-zA-Z]"
+    (fn [all-generated-results]
+      (= (set "0123456789") (set (apply concat all-generated-results))))]])
 
 
 (defn regex-matches-generated-string?

@@ -49,9 +49,8 @@ Within a character class, the following meta characters are supported:
 ## Implementation Note
 1. Some ambiguous regexes, those with nested brackets, may not match with Java's pattern compilation but it matches the regex parser in https://regexr.com/
 2. Only characters between these ranges are accepted in the regex: a-z, A-Z, 0-9
-3. Negation is not optimized, so it might take longer, this is due to lack of time, see fluky.random (a future improvement is added as a comment)
-4. This uses a manual parser of string (`string` ===lexer===> `tokens` ===parser===> `tree` + `random characters`)
-5. Sample parse tree for `[-+]?[0-9]{1,16}[.][0-9]{1,6}`:
+3. This uses a manual parser of string (`string` ===lexer===> `tokens` ===parser===> `tree` + `random characters`)
+4. Sample parse tree for `[-+]?[0-9]{1,16}[.][0-9]{1,6}`:
 
 ```clojure
 [[:QMARK_QUANTIFIER [:SET [:CHAR \-] [:CHAR \+]]]

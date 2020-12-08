@@ -13,12 +13,18 @@
    [:RANGE [:CHAR \0] [:CHAR \9]]])
 
 
+(defn char-range-to-ascii
+  [[token-type & r]]
+  (case token-type
+    :RANGE (mapv (comp int second) r)
+    :CHAR [(int (first r)) (int (first r))]))
+
+
 (defn random-in-range
-  [[t & range]]
-  (when *enable-random-generation*
-    (case t
-      :RANGE (char (apply fu/rand-range (mapv (comp int second) range)))
-      :CHAR (first range))))
+  [[t & range :as r]]
+  (case t
+    :RANGE (char (apply fu/rand-range (char-range-to-ascii r)))
+    :CHAR (first range)))
 
 
 (defn rand-char-from-range
@@ -29,35 +35,107 @@
 
 (defn any-rand-char
   []
-  (when *enable-random-generation* (rand-char-from-range default-range)))
+  (when *enable-random-generation*
+    (rand-char-from-range default-range)))
 
 
-(let [alpha (set (map char (range (dec (int \0)) (inc (int \z)))))]
-  (defn rand-char-from-negative-range
-    [neg-range]
-    ;; Due to lack of time, using enumeration here, but it is possible to break
-    ;; the positive default range into set of ranges with holes, eg:
-    ;; [^bcdf] would convert the range a-z into these ranges :
-    ;; a
-    ;; e
-    ;; g-z
-    ;; At this point, the `rand-char-from-range` may be used
+(defn remove-char-from-ascii-range
+  [int-r chari]
+  (let [[l u] int-r]
+    (cond
+      (and (= chari l) (= l u)) []
 
+      (= chari l) [[(inc l) u]]
+
+      (= chari u) [[l (dec u)]]
+
+      (< l chari u) [[l (dec chari)] [(inc chari) u]]
+
+      :else [[l u]])))
+
+
+(defn add-holes-to-range
+  [[l u] [nl nu]]
+  (cond
+    (< nu l) [[l u]]
+
+    (< u nl) [[l u]]
+
+    (and (= l nl)
+         (< nu u)) [[(inc nu) u]]
+
+    (and (= l nl)
+         (= u nu)) []
+
+    (and (= l nl)
+         (< u nu)) []
+
+    (and (< l nl u)
+         (= u nu)) [[l (dec nl)]]
+
+    (and (< l nl u)
+         (< u nu)) [[l (dec nl)]]
+
+    (= u nl) [[l (dec u)]]
+
+    (and (< l nl u)
+         (< l nu u)) [[l (dec nl)]
+                      [(inc nu) u]]
+
+    (and (< nl l)
+         (< l nu u)) [[(inc nu) u]]
+
+    (and (< nl l)
+         (= nu u)) []
+
+    (and (= nl l)
+         (< u nu)) []
+
+    (and (< nl l)
+         (< u nu)) []
+
+    (and (< nl l)
+         (< l nu)
+         (= nu l)) [[(inc l) u]]
+
+    (= nu l) [[(inc l) u]]))
+
+
+
+(defn add-holes-to-ranges
+  [orig-ranges ranges]
+  (distinct
+   (reduce (fn [acc r]
+             (apply concat
+                    (for [x acc]
+                      (add-holes-to-range x r))))
+           orig-ranges
+           ranges)))
+
+
+
+(let [alpha-range (map char-range-to-ascii default-range)]
+  (defn ranges-with-holes
+    [ranges]
     (when *enable-random-generation*
-      (let [reducer (fn [acc [t & r]]
-                      (into acc
-                            (case t
-                              :RANGE (map char (apply fu/range-incl (mapv (comp int second) r)))
-                              :CHAR r)))
-            possibilities (->> neg-range
-                               (reduce reducer #{})
-                               (cset/difference alpha)
-                               seq)]
-        (if possibilities
-          (rand-nth possibilities)
-          (throw (ex-info "No possibilities in A-Za-z0-9"
-                          {:range neg-range
-                           :type :no-possibility})))))))
+      (add-holes-to-ranges alpha-range
+                           (map char-range-to-ascii ranges)))))
+
+
+(defn rand-char-from-neg-range
+  [neg-ranges]
+  (when (and *enable-random-generation* (seq neg-ranges))
+    (let [candidate-ranges (ranges-with-holes neg-ranges)]
+      (if (seq candidate-ranges)
+        (char (apply fu/rand-range (rand-nth candidate-ranges)))
+        ;; for a tiebreaker when no range is possible in A-Z,a-z,0-9
+        (rand-nth [\{ \| \}])))))
+
+
+(defn generate-neg-set
+  [result parsed-token]
+  (conj (:random-subs result)
+        [(rand-char-from-neg-range parsed-token)]))
 
 
 (defn prev-neg?
@@ -83,12 +161,6 @@
   (conj (:random-subs result) [(rand-char-from-range parsed-token)]))
 
 
-(defn generate-neg-set
-  [result parsed-token]
-  (conj (:random-subs result)
-        [(rand-char-from-negative-range parsed-token)]))
-
-
 (defn generate-quantifier
   [{:keys [processed-tokens random-subs]} f]
   (let [previous-token (peek processed-tokens)]
@@ -108,7 +180,7 @@
 
       (prev-neg? previous)
       (into (pop curr)
-            [(repeatedly i #(rand-char-from-negative-range
+            [(repeatedly i #(rand-char-from-neg-range
                              (previous->range previous)))])
 
       :else (into (pop curr)
@@ -128,7 +200,7 @@
                                  [(repeatedly i any-rand-char)])
 
       (prev-neg? previous) (into (pop curr)
-                                 [(repeatedly i #(rand-char-from-negative-range
+                                 [(repeatedly i #(rand-char-from-neg-range
                                                   (previous->range previous)))])
 
       :else (into (pop curr)
@@ -177,7 +249,7 @@
                                        [(repeatedly i any-rand-char)])
 
       (prev-neg? previous-token) (into (pop curr)
-                                       [(repeatedly i #(rand-char-from-negative-range
+                                       [(repeatedly i #(rand-char-from-neg-range
                                                         (previous->range previous-token)))])
 
       :else (into (pop curr)

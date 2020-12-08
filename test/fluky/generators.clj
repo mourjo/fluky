@@ -51,7 +51,7 @@
             b gen/char-alpha-numeric
             q quantifier
             neg? (gen/frequency [[1 (gen/return true)]
-                                 [100 (gen/return false)]])]
+                                 [1 (gen/return false)]])]
     (let [x (char (min (int a) (int b)))
           y (char (max (int a) (int b)))]
       (if neg?
