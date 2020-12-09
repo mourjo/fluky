@@ -16,6 +16,18 @@ lein run '[-+]?[0-9]{1,16}[.][0-9]{1,6}'
 
 lein run '[a-z]{20}'
 "jkidghravucpblysumto"
+
+lein run 10 '[a-z]{20}'  # generate 10 samples
+"fdnmfiegvrlumxsflxcs"
+"xgchzldmulteiqpagorz"
+"qhqixqhkvbkmbobkquvc"
+"khkqbslyuugwzphzabgy"
+"manqecvywjsnvxpiyign"
+"qgnjmojraykfufmvritb"
+"duvxcixxtpggqjuyelor"
+"zepiujyaoklrefpmipso"
+"zhtiumwjoakporwhpuan"
+"aaggbjsypuaztoqptbop"
 ```
 
 The second option is to use the repl:
@@ -29,7 +41,7 @@ fluky.core=> (random-regex "[-+]?[0-9]{1,16}[.][0-9]{1,6}")
 "-824.7015"
 ```
 
-## What is supported
+## What is Supported
 
 - `.` Match any character except newline
 - `[` Start character class definition
@@ -59,7 +71,7 @@ Within a character class, the following meta characters are supported:
  [:MIN_MAX_QUANTIFIER [1 6] [:SET [:RANGE [:CHAR \0] [:CHAR \9]]]]]
 ```
 
-## Performance analysis
+## Performance Analysis
 
 This random generator uses ranges of ASCII values to generate individual characters based
 on the regex. Here is a quick benchmark on the performance with fairly large sized regexes

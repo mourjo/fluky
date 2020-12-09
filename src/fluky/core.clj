@@ -10,5 +10,8 @@
 
 (defn -main
   "Default entry point from the commandline"
-  [regex]
-  (prn (random-regex regex)))
+  ([regex]
+   (prn (random-regex regex)))
+  ([n regex]
+   (dotimes [_ (Integer/parseInt n)]
+     (-main regex))))
