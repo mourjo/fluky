@@ -273,7 +273,7 @@
 
 
 (ct/defspec generative-regex-generation
-  2500
+  4500
   (prop/for-all [regex-str fgen/gregex]
                 (let [result (sut/random-regex regex-str)]
                   (is (regex-matches-generated-string? regex-str result)))))

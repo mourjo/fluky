@@ -104,7 +104,7 @@
                            (map char-range-to-ascii ranges)))))
 
 
-(defn pos-range-to-rand-char
+(defn ranges-to-rand-char
   [candidate-ranges]
   (if (seq candidate-ranges)
     (char (apply fu/rand-range (rand-nth candidate-ranges)))
@@ -117,7 +117,7 @@
   (conj (:random-subs result)
         [(-> parsed-token
              pos-range-from-neg-range
-             pos-range-to-rand-char)]))
+             ranges-to-rand-char)]))
 
 
 (defn negative?
@@ -164,7 +164,7 @@
       (let [r (pos-range-from-neg-range (token->range previous))]
         (into (pop curr)
               [(repeatedly i
-                           #(pos-range-to-rand-char r))]))
+                           #(ranges-to-rand-char r))]))
 
       :else (into (pop curr)
                   [(repeatedly i #(rand-char-from-range
@@ -186,7 +186,7 @@
                                        token->range
                                        pos-range-from-neg-range)]
                              (into (pop curr)
-                                   [(repeatedly i #(pos-range-to-rand-char r))]))
+                                   [(repeatedly i #(ranges-to-rand-char r))]))
 
       :else (into (pop curr)
                   [(repeatedly i #(rand-char-from-range
@@ -237,7 +237,7 @@
                                               token->range
                                               pos-range-from-neg-range)]
                                    (into (pop curr)
-                                         [(repeatedly i #(pos-range-to-rand-char r))]))
+                                         [(repeatedly i #(ranges-to-rand-char r))]))
 
 
       :else (into (pop curr)

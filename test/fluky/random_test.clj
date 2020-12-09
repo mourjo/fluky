@@ -264,7 +264,7 @@
 
 
 (def rand-char-from-neg-range
-  (comp sut/pos-range-to-rand-char sut/pos-range-from-neg-range))
+  (comp sut/ranges-to-rand-char sut/pos-range-from-neg-range))
 
 
 (deftest negative-generation-test
