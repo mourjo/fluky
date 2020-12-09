@@ -85,7 +85,6 @@
     (= nu l) [[(inc l) u]]))
 
 
-
 (defn add-holes-to-ranges
   [orig-ranges ranges]
   (distinct
@@ -97,29 +96,28 @@
            ranges)))
 
 
-
 (let [alpha-range (map char-range-to-ascii default-range)]
-  (defn ranges-with-holes
+  (defn pos-range-from-neg-range
     [ranges]
     (when *enable-random-generation*
       (add-holes-to-ranges alpha-range
                            (map char-range-to-ascii ranges)))))
 
 
-(defn rand-char-from-neg-range
-  [neg-ranges]
-  (when (and *enable-random-generation* (seq neg-ranges))
-    (let [candidate-ranges (ranges-with-holes neg-ranges)]
-      (if (seq candidate-ranges)
-        (char (apply fu/rand-range (rand-nth candidate-ranges)))
-        ;; for a tiebreaker when no range is possible in A-Z,a-z,0-9
-        (rand-nth [\{ \| \}])))))
+(defn pos-range-to-rand-char
+  [candidate-ranges]
+  (if (seq candidate-ranges)
+    (char (apply fu/rand-range (rand-nth candidate-ranges)))
+    ;; for a tiebreaker when no range is possible in A-Z,a-z,0-9
+    (rand-nth [\{ \| \}])))
 
 
 (defn generate-neg-set
   [result parsed-token]
   (conj (:random-subs result)
-        [(rand-char-from-neg-range parsed-token)]))
+        [(-> parsed-token
+             pos-range-from-neg-range
+             pos-range-to-rand-char)]))
 
 
 (defn negative?
@@ -132,7 +130,7 @@
   (= :DOT (first token)))
 
 
-(defn previous->range
+(defn token->range
   [token]
   (case (first token)
     (:NEG_SET :SET) (rest token)
@@ -163,13 +161,14 @@
                             [(repeatedly i any-rand-char)])
 
       (negative? previous)
-      (into (pop curr)
-            [(repeatedly i #(rand-char-from-neg-range
-                             (previous->range previous)))])
+      (let [r (pos-range-from-neg-range (token->range previous))]
+        (into (pop curr)
+              [(repeatedly i
+                           #(pos-range-to-rand-char r))]))
 
       :else (into (pop curr)
                   [(repeatedly i #(rand-char-from-range
-                                   (previous->range previous)))]))))
+                                   (token->range previous)))]))))
 
 
 (defn plus-g
@@ -183,13 +182,15 @@
       (dot? previous) (into (pop curr)
                             [(repeatedly i any-rand-char)])
 
-      (negative? previous) (into (pop curr)
-                                 [(repeatedly i #(rand-char-from-neg-range
-                                                  (previous->range previous)))])
+      (negative? previous) (let [r (-> previous
+                                       token->range
+                                       pos-range-from-neg-range)]
+                             (into (pop curr)
+                                   [(repeatedly i #(pos-range-to-rand-char r))]))
 
       :else (into (pop curr)
                   [(repeatedly i #(rand-char-from-range
-                                   (previous->range previous)))]))))
+                                   (token->range previous)))]))))
 
 
 (defn qmark-g
@@ -232,13 +233,16 @@
       (dot? previous-token) (into (pop curr)
                                   [(repeatedly i any-rand-char)])
 
-      (negative? previous-token) (into (pop curr)
-                                       [(repeatedly i #(rand-char-from-neg-range
-                                                        (previous->range previous-token)))])
+      (negative? previous-token) (let [r (->> previous-token
+                                              token->range
+                                              pos-range-from-neg-range)]
+                                   (into (pop curr)
+                                         [(repeatedly i #(pos-range-to-rand-char r))]))
+
 
       :else (into (pop curr)
                   [(repeatedly i #(rand-char-from-range
-                                   (previous->range previous-token)))]))))
+                                   (token->range previous-token)))]))))
 
 
 (defn generate-char

@@ -263,31 +263,34 @@
          [[10 10] [201 205]])))
 
 
+(def rand-char-from-neg-range
+  (comp sut/pos-range-to-rand-char sut/pos-range-from-neg-range))
+
 
 (deftest negative-generation-test
   (compare-generation "0123456789abcdefghijklmnopqrstuvwxyz"
-                      (sut/rand-char-from-neg-range
+                      (rand-char-from-neg-range
                        [[:RANGE [:CHAR \A] [:CHAR \Z]]]))
   (compare-generation "0123456789"
-                      (sut/rand-char-from-neg-range
+                      (rand-char-from-neg-range
                        [[:RANGE [:CHAR \A] [:CHAR \Z]]
                         [:RANGE [:CHAR \a] [:CHAR \z]]]))
   (compare-generation "0123456789"
-                      (sut/rand-char-from-neg-range
+                      (rand-char-from-neg-range
                        [[:RANGE [:CHAR \a] [:CHAR \z]]
                         [:RANGE [:CHAR \A] [:CHAR \Z]]]))
   (compare-generation "{|}"
-                      (sut/rand-char-from-neg-range
+                      (rand-char-from-neg-range
                        [[:RANGE [:CHAR \a] [:CHAR \z]]
                         [:RANGE [:CHAR \0] [:CHAR \9]]
                         [:RANGE [:CHAR \A] [:CHAR \Z]]]))
   (compare-generation "012346789"
-                      (sut/rand-char-from-neg-range
+                      (rand-char-from-neg-range
                        [[:RANGE [:CHAR \a] [:CHAR \z]]
                         [:CHAR \5]
                         [:RANGE [:CHAR \A] [:CHAR \Z]]]))
   (compare-generation "01236789"
-                      (sut/rand-char-from-neg-range
+                      (rand-char-from-neg-range
                        [[:RANGE [:CHAR \a] [:CHAR \z]]
                         [:CHAR \4]
                         [:CHAR \5]
