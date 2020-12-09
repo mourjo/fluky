@@ -1,6 +1,5 @@
 (ns fluky.random
-  (:require [fluky.utils :as fu]
-            [clojure.set :as cset]))
+  (:require [fluky.utils :as fu]))
 
 ;; Note. This generator is not uniformly random.
 
@@ -37,21 +36,6 @@
   []
   (when *enable-random-generation*
     (rand-char-from-range default-range)))
-
-
-(defn remove-char-from-ascii-range
-  [int-r chari]
-  (let [[l u] int-r]
-    (cond
-      (and (= chari l) (= l u)) []
-
-      (= chari l) [[(inc l) u]]
-
-      (= chari u) [[l (dec u)]]
-
-      (< l chari u) [[l (dec chari)] [(inc chari) u]]
-
-      :else [[l u]])))
 
 
 (defn add-holes-to-range
@@ -138,21 +122,21 @@
         [(rand-char-from-neg-range parsed-token)]))
 
 
-(defn prev-neg?
-  [previous-token]
-  (= :NEG_SET (first previous-token)))
+(defn negative?
+  [token]
+  (= :NEG_SET (first token)))
 
 
-(defn prev-dot?
-  [previous-token]
-  (= :DOT (first previous-token)))
+(defn dot?
+  [token]
+  (= :DOT (first token)))
 
 
 (defn previous->range
-  [previous-token]
-  (case (first previous-token)
-    (:NEG_SET :SET) (rest previous-token)
-    :CHAR [previous-token]
+  [token]
+  (case (first token)
+    (:NEG_SET :SET) (rest token)
+    :CHAR [token]
     nil))
 
 
@@ -175,10 +159,10 @@
 
       (= 1 i) curr
 
-      (prev-dot? previous) (into (pop curr)
-                                 [(repeatedly i any-rand-char)])
+      (dot? previous) (into (pop curr)
+                            [(repeatedly i any-rand-char)])
 
-      (prev-neg? previous)
+      (negative? previous)
       (into (pop curr)
             [(repeatedly i #(rand-char-from-neg-range
                              (previous->range previous)))])
@@ -196,10 +180,10 @@
 
       (= 1 i) curr
 
-      (prev-dot? previous) (into (pop curr)
-                                 [(repeatedly i any-rand-char)])
+      (dot? previous) (into (pop curr)
+                            [(repeatedly i any-rand-char)])
 
-      (prev-neg? previous) (into (pop curr)
+      (negative? previous) (into (pop curr)
                                  [(repeatedly i #(rand-char-from-neg-range
                                                   (previous->range previous)))])
 
@@ -245,10 +229,10 @@
 
       (= 1 i) curr
 
-      (prev-dot? previous-token) (into (pop curr)
-                                       [(repeatedly i any-rand-char)])
+      (dot? previous-token) (into (pop curr)
+                                  [(repeatedly i any-rand-char)])
 
-      (prev-neg? previous-token) (into (pop curr)
+      (negative? previous-token) (into (pop curr)
                                        [(repeatedly i #(rand-char-from-neg-range
                                                         (previous->range previous-token)))])
 
