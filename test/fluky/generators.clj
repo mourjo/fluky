@@ -26,19 +26,14 @@
                  (format "{%d}" (max 1 x)))]))
 
 
-(def gsquare-optional
+(def gsquare-chars
   ;; Generate a regex of the form:
   ;; [abcde]?
   ;; [abcde]*
   ;; [abcde]+
   ;; [abcde]{1,2}
-  (gen/let [charseq (gen/vector gchar 1 5)
-            q quantifier
-            neg? gen/boolean]
-    (let [s (cstr/join "" charseq)]
-      (if neg?
-        (format "[^%s]%s" s q)
-        (format "[%s]%s" s q)))))
+  (gen/let [charseq (gen/vector gchar 1 5)]
+    (cstr/join "" charseq)))
 
 
 (def gsquare-range
@@ -48,20 +43,25 @@
   ;; [g-z]+
   ;; [0-9]{1,2}
   (gen/let [a gen/char-alpha-numeric
-            b gen/char-alpha-numeric
-            q quantifier
-            neg? (gen/frequency [[1 (gen/return true)]
-                                 [1 (gen/return false)]])]
+            b gen/char-alpha-numeric]
     (let [x (char (min (int a) (int b)))
           y (char (max (int a) (int b)))]
+      (format "%s-%s" x y ))))
+
+
+(def gsquare
+  (gen/let [neg? gen/boolean
+            args (gen/vector (gen/one-of [gsquare-range gsquare-chars])
+                             1 5)
+            q quantifier]
+    (let [sargs (cstr/join "" args)]
       (if neg?
-        (format "[^%s-%s]%s" x y q)
-        (format "[%s-%s]%s" x y q)))))
+        (format "[^%s]%s" sargs q)
+        (format "[%s]%s" sargs q)))))
 
 
 (def gregex-clause
-  (gen/one-of [gsquare-range
-               gsquare-optional
+  (gen/one-of [gsquare
                gchar]))
 
 
