@@ -59,6 +59,63 @@ Within a character class, the following meta characters are supported:
  [:MIN_MAX_QUANTIFIER [1 6] [:SET [:RANGE [:CHAR \0] [:CHAR \9]]]]]
 ```
 
+## Performance analysis
+
+This random generator uses ranges of ASCII values to generate individual characters based
+on the regex. Here is a quick benchmark on the performance with fairly large sized regexes
+(usually >10 chars). We are using [criterium](https://github.com/hugoduncan/criterium) here:
+
+
+```clojure
+
+;;;; *** Setup ***
+
+(require 'fluky.core-test)
+(in-ns 'fluky.core-test)
+(require '[clojure.test.check.generators :as gen])
+(require '[criterium.core :as criterium]) ;;https://github.com/hugoduncan/criterium
+(def samples
+   (with-open [rdr (clojure.java.io/reader "resources/samples.txt")]
+     (doall (line-seq rdr))))
+(def n (count samples))
+(def counter (agent 0))
+(defn next-regex
+  []
+  (nth samples @(send counter (fn [i] (mod (inc i) n)))))
+
+
+;;;; *** Benchmark ***
+
+(criterium/with-progress-reporting
+  (criterium/bench
+   (let [regex-str (next-regex)]
+     (sut/random-regex regex-str))
+   :verbose))
+
+```
+
+The result of the above:
+
+```
+x86_64 Mac OS X 10.15.7 4 cpu(s)
+Java HotSpot(TM) 64-Bit Server VM 25.121-b13
+Evaluation count : 257940 in 60 samples of 4299 calls.
+      Execution time sample mean : 270.872465 µs
+             Execution time mean : 271.164718 µs
+Execution time sample std-deviation : 299.459117 µs
+    Execution time std-deviation : 299.495176 µs
+   Execution time lower quantile : 208.194823 µs ( 2.5%)
+   Execution time upper quantile : 251.850580 µs (97.5%)
+                   Overhead used : 2.061289 ns
+
+Found 10 outliers in 60 samples (16.6667 %)
+    low-severe	 2 (3.3333 %)
+    low-mild	 3 (5.0000 %)
+    high-mild	 3 (5.0000 %)
+    high-severe	 2 (3.3333 %)
+ Variance from outliers : 98.3127 % Variance is severely inflated by outliers
+```
+
 ## License
 
 Copyright © 2020 Mourjo Sen
