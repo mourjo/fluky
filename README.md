@@ -128,6 +128,79 @@ Found 10 outliers in 60 samples (16.6667 %)
  Variance from outliers : 98.3127 % Variance is severely inflated by outliers
 ```
 
+## Native Compilation
+
+This simple library is compatible with GraalVM native image. Here are the steps for that.
+
+1. Ensure Java version supports native images:
+
+```shell
+# Ensure Java 14+
+java -version
+openjdk version "14.0.1" 2020-04-14
+OpenJDK Runtime Environment (build 14.0.1+7)
+OpenJDK 64-Bit Server VM (build 14.0.1+7, mixed mode, sharing)
+```
+
+2. Generate the uber jar:
+
+```shell
+lein do clean, compile, uberjar
+```
+
+3. Compile the native image from the uberjar into a file called `./target/fluky`:
+
+```shell
+/path/to/graalvm-ce-java8-20.0.0/Contents/Home/bin/native-image \
+             --initialize-at-build-time \
+             --no-server \
+             -jar ./target/uberjar/fluky-0.1.0-SNAPSHOT-standalone.jar \
+             -H:Name=./target/fluky
+```
+
+4. Run the native image and compare to performance on the VM:
+
+```shell
+
+# Lein VM
+time lein run 1000 '[^a-z]{100}' > /dev/null
+
+real	4.15s
+user	10.40s
+sys	0.55s
+
+
+# Jar VM
+time lein run 1000 '[^a-z]{100}' > /dev/null
+
+real	5.03s
+user	9.83s
+sys	0.60s
+
+
+# Native
+time ./target/fluky 1000 '[^a-z]{100}' > /dev/null
+
+real	0.26s
+user	0.21s
+sys	0.04s
+```
+
+While the native image does seem faster above, it will only be so while the startup of the JVM
+is the bottleneck. After a while and number of computations, JVM's optimizations will overtake
+the static native image. Here is a graph plotting on the X-axis the input size X and the time
+taken to run with `lein run X '[^a-z]{X}'` or `./target/fluky X '[^a-z]{X}'` or `java -jar fluky.jar X '[^a-z]{X}'`:
+
+![img](resources/runtimecomparison.png)
+
+This was generated using
+
+```shell
+for i in `seq 0 250 10000`; do gtime -f "%e" ./target/fluky $i "[^a-z]{$i}" > /dev/null; done ;
+for i in `seq 0 250 10000`; do gtime -f "%e" lein run $i "[^a-z]{$i}" > /dev/null; done ;
+for i in `seq 0 250 10000`; do gtime -f "%e" java -jar ./target/uberjar/fluky-0.1.0-SNAPSHOT-standalone.jar $i "[^a-z]{$i}" > /dev/null; done ;
+```
+
 ## License
 
 Copyright © 2020 Mourjo Sen
