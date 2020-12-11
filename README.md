@@ -173,9 +173,9 @@ sys	0.55s
 # Jar VM
 time java -jar ./target/uberjar/fluky-0.1.0-SNAPSHOT-standalone.jar 1000 '[^a-z]{100}' > /dev/null
 
-real	5.03s
-user	9.83s
-sys	0.60s
+real	1.18s
+user	2.60s
+sys	0.14s
 
 
 # Native
