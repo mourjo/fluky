@@ -171,7 +171,7 @@ sys	0.55s
 
 
 # Jar VM
-time lein run 1000 '[^a-z]{100}' > /dev/null
+time java -jar ./target/uberjar/fluky-0.1.0-SNAPSHOT-standalone.jar 1000 '[^a-z]{100}' > /dev/null
 
 real	5.03s
 user	9.83s
@@ -191,7 +191,7 @@ is the bottleneck. After a while and number of computations, JVM's optimizations
 the static native image. Here is a graph plotting on the X-axis the input size X and the time
 taken to run with `lein run X '[^a-z]{X}'` or `./target/fluky X '[^a-z]{X}'` or `java -jar fluky.jar X '[^a-z]{X}'`:
 
-![img](resources/runtimecomparison.png)
+![img](resources/runtime_comparison.png)
 
 This was generated using
 
